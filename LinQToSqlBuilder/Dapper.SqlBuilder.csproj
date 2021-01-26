@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+    <TargetFrameworks>netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
+		<PackageId>Dapper.SqlBuilder</PackageId>
+		<Version>1.0.0</Version>
+		<Copyright></Copyright>
+		<Authors></Authors>
+		<Company></Company>
+		<PackageDescription>A small library that help you convert LinQ lambda expression into raw SQL queries with strongly type manner.</PackageDescription>
+		<RepositoryUrl></RepositoryUrl>
+		<AssemblyName>Dapper.SqlBuilder</AssemblyName>
+		<RootNamespace>Dapper.SqlBuilder</RootNamespace>
+	</PropertyGroup>
+
+	<PropertyGroup>
+	  <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+		<NoWarn>1701;1702;1591;1574;1723</NoWarn>
+		<Product />
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	</PropertyGroup>
+
+</Project>
