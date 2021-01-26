@@ -92,6 +92,9 @@ namespace Dapper.SqlBuilder.Builder
 
         internal SqlQueryBuilder(string tableName, ISqlAdapter adapter)
         {
+            if (adapter == null)
+                throw new InvalidOperationException("Set Adapter first, eg: SqlBuilder.SetAdapter(new SqlServerAdapter())");
+
             TableNames.Add(tableName);
             Adapter = adapter;
             Parameters = new ExpandoObject();

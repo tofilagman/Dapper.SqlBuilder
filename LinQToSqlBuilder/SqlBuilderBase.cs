@@ -13,7 +13,7 @@ namespace Dapper.SqlBuilder
     /// </summary>
     public abstract class SqlBuilderBase
     {
-        internal static ISqlAdapter DefaultAdapter = new SqlServerAdapter();
+        internal static ISqlAdapter DefaultAdapter;
         internal SqlQueryBuilder Builder;
         internal LambdaResolver Resolver;
 
