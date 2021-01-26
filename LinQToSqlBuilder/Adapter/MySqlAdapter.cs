@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Dapper.SqlBuilder.Adapter
@@ -33,6 +34,28 @@ namespace Dapper.SqlBuilder.Adapter
         public string Table(string tableName)
         {
             return tableName;
+        }
+
+        public override string InsertCommand(string target, List<Dictionary<string, object>> values, string output = "")
+        {
+            var fieldsToInsert = values.First()
+                                       .Select(rowValue => rowValue.Key)
+                                       .ToList();
+            var valuesToInsert = new List<string>();
+            foreach (var rowValue in values)
+            {
+                valuesToInsert.Add(string.Join(", ", rowValue.Select(_ => _.Value)));
+            }
+
+            return
+                $"INSERT INTO {target} ({string.Join(", ", fieldsToInsert)}) " + 
+                $"VALUES ({string.Join("), (", valuesToInsert)}) " +
+                (
+                    !string.IsNullOrEmpty(output)
+                        ? $"SELECT LAST_INSERT_ID() "
+                        : string.Empty
+                )
+                   .Trim();
         }
     }
 }

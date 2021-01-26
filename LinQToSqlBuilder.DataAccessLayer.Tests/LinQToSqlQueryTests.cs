@@ -11,6 +11,12 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
     [TestFixture]
     public class LinQToSqlQueryTests : TestBase
     {
+        [SetUp]
+        public void Setup()
+        {
+            SqlBuilder.SetAdapter(new SqlServerAdapter());
+        }
+
         [Test]
         public void QueryCount()
         {

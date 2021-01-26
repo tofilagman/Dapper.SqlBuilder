@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
+		<TargetFrameworks>netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
 		<PackageId>Dapper.SqlBuilder</PackageId>
-		<Version>1.0.0</Version>
+		<Version>1.0.1</Version>
 		<Copyright></Copyright>
 		<Authors></Authors>
 		<Company></Company>

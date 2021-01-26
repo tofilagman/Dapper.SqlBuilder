@@ -10,6 +10,93 @@ namespace Dapper.SqlBuilder
 {
     public static class SqlBuilder
     {
+        /// <summary>
+        /// Prepares an insert command to do the insert operation for one record of specified <typeparamref name="T"/> 
+        /// </summary>
+        /// <typeparam name="T">The type of entity that associates to the table to insert record(s) to</typeparam>
+        /// <param name="expression">The expression that generates the record to insert</param>
+        /// <returns>The instance of <see cref="SqlBuilder{T}"/> for chaining calls</returns>
+        public static SqlBuilder<T> Insert<T>(Expression<Func<T, T>> expression)
+        {
+            return new SqlBuilder<T>()
+            {
+                Operation = SqlOperations.Insert
+            }.Insert(expression);
+        }
+
+        public static SqlBuilder<T> Insert<T>(T data)
+        {
+            return Insert<T>(x => data);
+        }
+
+        /// <summary>
+        /// Prepares an insert command to do the insert operation for many records of specified <typeparamref name="T"/> 
+        /// </summary>
+        /// <typeparam name="T">The type of entity that associates to the table to insert record(s) to</typeparam>
+        /// <param name="expression">The expression that generates the records to insert</param>
+        /// <returns>The instance of <see cref="SqlBuilder{T}"/> for chaining calls</returns>
+        public static SqlBuilder<T> InsertMany<T>(Expression<Func<T, IEnumerable<T>>> expression)
+        {
+            return new SqlBuilder<T>()
+            {
+                Operation = SqlOperations.Insert
+            }.Insert(expression);
+        }
+
+        /// <summary>
+        /// Prepares an insert command to copy record(s) from specific <typeparamref name="T"/> table to the <typeparamref name="TTo"/>  destination table
+        /// </summary>
+        /// <typeparam name="T">The type of entity that associates to the source table to copy record(s) from</typeparam>
+        /// <typeparam name="TTo">The type of entity that associates to the destination table to copy record(s) to</typeparam>
+        /// <param name="expression">The expression describes how to form the destination record</param>
+        /// <returns>The instance of <see cref="SqlBuilder{T}"/> for chaining calls</returns>
+        public static SqlBuilder<T> InsertFrom<T, TTo>(Expression<Func<T, TTo>> expression)
+        {
+            return new SqlBuilder<T>()
+            {
+                Operation = SqlOperations.InsertFrom
+            }.Insert(expression);
+        }
+
+        /// <summary>
+        /// Prepares an update command to specified <typeparamref name="T"/> 
+        /// </summary>
+        /// <typeparam name="T">The type of entity that associates to the table to performs the update</typeparam>
+        /// <param name="expression">The expression that describes how to update the record</param>
+        /// <returns>The instance of <see cref="SqlBuilder{T}"/> for chaining calls</returns>
+
+        public static SqlBuilder<T> Update<T>(Expression<Func<T, object>> expression)
+        {
+            return new SqlBuilder<T>()
+                {
+                    Operation = SqlOperations.Update
+                }
+               .Update(expression);
+        }
+
+        public static SqlBuilder<T> Update<T>(T data)
+        {
+            return Update<T>(x => data);
+        }
+
+        /// <summary>
+        /// Prepares a delete command to specified <typeparamref name="T"/> 
+        /// </summary>
+        /// <typeparam name="T">The type of entity that associates to the table to performs the deletion</typeparam>
+        /// <param name="expression">The expression that filters the records to be deleted</param>
+        /// <returns>The instance of <see cref="SqlBuilder{T}"/> for chaining calls</returns>
+        public static SqlBuilder<T> Delete<T>(Expression<Func<T, bool>> expression)
+        {
+            return new SqlBuilder<T>()
+            {
+                Operation = SqlOperations.Delete
+            }.Where(expression);
+        }
+
+        public static SqlBuilder<T> Delete<T>()
+        {
+            return new SqlBuilder<T>() { Operation = SqlOperations.Delete };
+        }
 
         /// <summary>
         /// Prepares a select query to specified <typeparamref name="T"/> from given expression
@@ -65,7 +152,7 @@ namespace Dapper.SqlBuilder
         /// <param name="expression">The expression that describe how to filter the results</param>
         /// <returns>The instance of <see cref="SqlBuilder{T}"/> for chaining calls</returns>
         public static SqlBuilder<T> Count<T>(Expression<Func<T, object>> countExpression,
-                                             Expression<Func<T, bool>> expression = null)
+                                             Expression<Func<T, bool>>   expression = null)
         {
             var sqlBuilder = new SqlBuilder<T>();
 
@@ -203,6 +290,59 @@ namespace Dapper.SqlBuilder
         {
             Resolver.Select(expression);
 
+            return this;
+        }
+
+        public SqlBuilder<T> Update(Expression<Func<T, object>> expression)
+        {
+            Resolver.Update(expression);
+            return this;
+        }
+
+        /// <summary>
+        /// Performs insert a new record from the given expression
+        /// </summary>
+        /// <param name="expression">The expression describes what to insert</param>
+        /// <returns></returns>
+        public SqlBuilder<T> Insert(Expression<Func<T, T>> expression)
+        {
+            Resolver.Insert<T>(expression);
+            return this;
+        }
+
+        /// <summary>
+        /// Append OUTPUT to the insert statement to get the output identity of the inserted record.
+        /// </summary>
+        public SqlBuilder<T> OutputIdentity()
+        {
+            if (Builder.Operation != SqlOperations.Insert)
+                throw new InvalidOperationException($"Cannot OUTPUT identity for the SQL statement that is not insert");
+
+            Resolver.OutputInsertIdentity<T>();
+            return this;
+        }
+
+        /// <summary>
+        /// Performs insert many records from the given expression
+        /// </summary>
+        /// <param name="expression">The expression describes the entities to insert</param>
+        /// <returns></returns>
+        public SqlBuilder<T> Insert(Expression<Func<T, IEnumerable<T>>> expression)
+        {
+            Resolver.Insert(expression);
+            return this;
+        }
+
+        /// <summary>
+        /// Performs insert to <see cref="TTo"/> table using the values copied from the given expression
+        /// </summary>
+        /// <typeparam name="TTo">The destination table</typeparam>
+        /// <param name="expression">The expression describes how to copy values from original table <see cref="T"/></param>
+        /// <returns></returns>
+        public SqlBuilder<T> Insert<TTo>(Expression<Func<T, TTo>> expression)
+        {
+            Builder.InsertTo<TTo>();
+            Resolver.Insert<T, TTo>(expression);
             return this;
         }
 

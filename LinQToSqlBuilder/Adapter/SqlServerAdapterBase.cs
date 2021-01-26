@@ -3,7 +3,7 @@
     /// <summary>
     /// Provides functionality common to all supported SQL Server versions
     /// </summary>
-    class SqlServerAdapterBase : SqlAdapterBase
+   public class SqlServerAdapterBase : SqlAdapterBase
     {
         public string Table(string tableName)
         {

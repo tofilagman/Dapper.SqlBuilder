@@ -31,6 +31,24 @@ namespace Dapper.SqlBuilder.Builder
         private List<string> HavingConditions { get; } = new List<string>();
         internal List<string> SplitColumns { get; } = new List<string>();
 
+        public string InsertTarget
+        {
+            get
+            {
+                switch (Operation)
+                {
+                    case SqlOperations.Insert:
+                        return Adapter.Table(TableNames.First());
+
+                    case SqlOperations.InsertFrom:
+                        return Adapter.Table(TableNames.Last());
+
+                    default:
+                        throw new NotSupportedException("The property is not supported in other queries than INSERT query statement");
+                }
+            }
+        }
+
         private int? _pageSize;
 
         private int _pageIndex;
@@ -85,8 +103,20 @@ namespace Dapper.SqlBuilder.Builder
         public string CommandText
         {
             get
-            { 
-                return GenerateQueryCommand(); 
+            {
+                switch (Operation)
+                {
+                    case SqlOperations.Insert:
+                        return Adapter.InsertCommand(InsertTarget, InsertValues, _insertOutput);
+                    case SqlOperations.InsertFrom:
+                        return Adapter.InsertFromCommand(InsertTarget, Source, InsertValues, Conditions);
+                    case SqlOperations.Update:
+                        return Adapter.UpdateCommand(UpdateValues, Source, Conditions);
+                    case SqlOperations.Delete:
+                        return Adapter.DeleteCommand(Source, Conditions);
+                    default:
+                        return GenerateQueryCommand();
+                }
             }
         }
 
@@ -110,7 +140,7 @@ namespace Dapper.SqlBuilder.Builder
 
         private void AddParameter(string key, object value)
         {
-            if (!Parameters.ContainsKey(key))
+            if(!Parameters.ContainsKey(key))
                 Parameters.Add(key, value);
         }
         #endregion

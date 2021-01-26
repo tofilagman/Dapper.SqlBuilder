@@ -1,6 +1,6 @@
 ﻿namespace Dapper.SqlBuilder.Adapter
 {
-    class SqlServerAdapter : SqlServerAdapterBase, ISqlAdapter
+   public class SqlServerAdapter : SqlServerAdapterBase, ISqlAdapter
     {
         public string QueryStringPage(string source,   string selection, string conditions, string order,
                                       int    pageSize, int    pageIndex = 0)

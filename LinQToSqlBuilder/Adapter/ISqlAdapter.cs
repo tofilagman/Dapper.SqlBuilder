@@ -7,14 +7,23 @@ namespace Dapper.SqlBuilder.Adapter
     /// </summary>
     public interface ISqlAdapter
     {
-        string QueryString(string selection, string source, string conditions, 
+        string QueryString(string selection, string source, string conditions,
             string order, string grouping, string having);
 
         string QueryStringPage(string selection, string source, string conditions, string order,
             int pageSize, int pageIndex = 0);
-         
+
+        string InsertCommand(string source, List<Dictionary<string, object>> values, string output = "");
+
+        string InsertFromCommand(string target, string source, List<Dictionary<string, object>> values,
+                                 string conditions);
+
+        string UpdateCommand(string updates, string source, string conditions);
+
+        string DeleteCommand(string source, string conditions);
+
         string Table(string tableName);
-        
+
         string Field(string fieldName);
 
         string Field(string tableName, string fieldName);
@@ -24,6 +33,10 @@ namespace Dapper.SqlBuilder.Adapter
 
     enum SqlOperations
     {
-        Query
+        Query,
+        Insert,
+        InsertFrom,
+        Update,
+        Delete
     }
 }

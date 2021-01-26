@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq.Expressions;
 using System.Reflection;
-using Dapper.SqlBuilder.Builder; 
+using Dapper.SqlBuilder.Builder;
+using Dapper.SqlBuilder.UpdateStatementResolver;
 
 namespace Dapper.SqlBuilder.Resolver
 {
@@ -31,7 +32,17 @@ namespace Dapper.SqlBuilder.Resolver
         }
 
         #region helpers
-          
+
+        private static readonly List<IUpdateStatementResolver> StatementResolvers = new List<IUpdateStatementResolver>
+        {
+            new StringReplaceUpdateResolver()
+        };
+
+        public static void RegisterResolver(IUpdateStatementResolver resolver)
+        {
+            StatementResolvers.Add(resolver);
+        }
+
         public static string GetColumnName<T>(Expression<Func<T, object>> selector)
         {
             return GetColumnName(GetMemberExpression(selector.Body));
