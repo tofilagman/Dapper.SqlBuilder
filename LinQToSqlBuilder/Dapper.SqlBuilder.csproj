@@ -5,10 +5,10 @@
 		<PackageId>Dapper.SqlBuilder</PackageId>
 		<Version>1.0.1</Version>
 		<Copyright></Copyright>
-		<Authors></Authors>
+		<Authors>DotNet Brightener</Authors>
 		<Company></Company>
 		<PackageDescription>A small library that help you convert LinQ lambda expression into raw SQL queries with strongly type manner.</PackageDescription>
-		<RepositoryUrl></RepositoryUrl>
+		<RepositoryUrl>https://github.com/tofilagman/Dapper.SqlBuilder</RepositoryUrl>
 		<AssemblyName>Dapper.SqlBuilder</AssemblyName>
 		<RootNamespace>Dapper.SqlBuilder</RootNamespace>
 	</PropertyGroup>
