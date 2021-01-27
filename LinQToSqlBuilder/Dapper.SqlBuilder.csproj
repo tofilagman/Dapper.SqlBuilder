@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
-		<PackageId>Dapper.SqlBuilder</PackageId>
+		<PackageId>Dapper.SqlBuilder.Unofficial</PackageId>
 		<Version>1.0.1</Version>
 		<Copyright></Copyright>
 		<Authors>DotNet Brightener</Authors>
@@ -16,8 +16,9 @@
 	<PropertyGroup>
 	  <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
 		<NoWarn>1701;1702;1591;1574;1723</NoWarn>
-		<Product />
+		<Product>Dapper.SqlBuilder.Unofficial</Product>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 	</PropertyGroup>
 
 </Project>

@@ -3,10 +3,12 @@ LinQ to SQL Builder - small .NET library supports creating SQL queries and comma
   
 Repack
 ==========
-This lib was repack and use to replace Dapper.Contrib to work for [MsSQL, MySql] SQL Syntax and was taken from https://github.com/dotnetbrightener/LinQ-To-Sql-Builder 
+This lib was repack and use to replace Dapper.Contrib to work for [MsSQL, MySql] SQL Syntax and was taken from https://github.com/dotnetbrightener/LinQ-To-Sql-Builder
 
-.NET versions supported
-===
+Nuget Package
+============
+
+[https://www.nuget.org/packages/Dapper.SqlBuilder.Unofficial/1.0.1](https://www.nuget.org/packages/Dapper.SqlBuilder.Unofficial/1.0.1)
 
 At the moment the library supports .Net Core 2.1 and above.
 
