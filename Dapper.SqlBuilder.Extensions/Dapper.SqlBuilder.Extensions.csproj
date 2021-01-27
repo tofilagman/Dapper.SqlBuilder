@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
+    <LangVersion>8.0</LangVersion>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>Dapper.SqlBuilder.Unofficial.Extensions</PackageId>
+    <Authors>Dapper.SqlBuilder.Unofficial.Extensions</Authors>
+    <Company>Dapper.SqlBuilder.Unofficial.Extensions</Company>
+    <Product>Dapper.SqlBuilder.Unofficial.Extensions</Product>
+    <RepositoryUrl>https://github.com/tofilagman/Dapper.SqlBuilder</RepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.0.78" />
+    <PackageReference Include="microsoft.bcl.asyncinterfaces" Version="5.0.0" />
+    <PackageReference Include="z.Data.Standard" Version="1.2.14" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LinQToSqlBuilder\Dapper.SqlBuilder.csproj" />
+  </ItemGroup>
+
+</Project>

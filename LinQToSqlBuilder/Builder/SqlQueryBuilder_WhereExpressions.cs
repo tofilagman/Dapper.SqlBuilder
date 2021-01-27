@@ -95,7 +95,7 @@ namespace Dapper.SqlBuilder.Builder
             WhereConditions.Add(newCondition);
         }
 
-        public void QueryByIsIn(string tableName, string fieldName, IEnumerable<object> values)
+        public void QueryByIsIn<T>(string tableName, string fieldName, IEnumerable<T> values)
         {
             var paramIds = values.Select(x =>
                                              {

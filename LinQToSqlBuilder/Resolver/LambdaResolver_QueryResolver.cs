@@ -107,7 +107,7 @@ namespace Dapper.SqlBuilder.Resolver
             Builder.QueryByIsIn(GetTableName<T>(), fieldName, sqlQuery);
         }
 
-        public void QueryByIsIn<T>(Expression<Func<T, object>> expression, IEnumerable<object> values)
+        public void QueryByIsIn<T, T2>(Expression<Func<T, T2>> expression, IEnumerable<T2> values)
         {
             var fieldName = GetColumnName(expression);
             Builder.QueryByIsIn(GetTableName<T>(), fieldName, values);

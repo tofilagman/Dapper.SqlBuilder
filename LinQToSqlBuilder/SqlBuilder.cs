@@ -43,6 +43,11 @@ namespace Dapper.SqlBuilder
             }.Insert(expression);
         }
 
+        public static SqlBuilder<T> InsertMany<T>(IEnumerable<T> expression)
+        {
+            return InsertMany<T>(x => expression);
+        }
+
         /// <summary>
         /// Prepares an insert command to copy record(s) from specific <typeparamref name="T"/> table to the <typeparamref name="TTo"/>  destination table
         /// </summary>
@@ -68,9 +73,9 @@ namespace Dapper.SqlBuilder
         public static SqlBuilder<T> Update<T>(Expression<Func<T, object>> expression)
         {
             return new SqlBuilder<T>()
-                {
-                    Operation = SqlOperations.Update
-                }
+            {
+                Operation = SqlOperations.Update
+            }
                .Update(expression);
         }
 
@@ -152,7 +157,7 @@ namespace Dapper.SqlBuilder
         /// <param name="expression">The expression that describe how to filter the results</param>
         /// <returns>The instance of <see cref="SqlBuilder{T}"/> for chaining calls</returns>
         public static SqlBuilder<T> Count<T>(Expression<Func<T, object>> countExpression,
-                                             Expression<Func<T, bool>>   expression = null)
+                                             Expression<Func<T, bool>> expression = null)
         {
             var sqlBuilder = new SqlBuilder<T>();
 
@@ -214,6 +219,10 @@ namespace Dapper.SqlBuilder
             return this;
         }
 
+        public SqlBuilder<T> AndIsIn(Expression<Func<T, object>> expression, SqlBuilderBase sqlQuery) => WhereIsIn(expression, sqlQuery);
+
+        public SqlBuilder<T> AndIsIn<T2>(Expression<Func<T, T2>> expression, IEnumerable<T2> values) => WhereIsIn(expression, values);
+
         public SqlBuilder<T> Or(Expression<Func<T, bool>> expression)
         {
             Builder.Or();
@@ -228,7 +237,7 @@ namespace Dapper.SqlBuilder
             return this;
         }
 
-        public SqlBuilder<T> WhereIsIn(Expression<Func<T, object>> expression, IEnumerable<object> values)
+        public SqlBuilder<T> WhereIsIn<T2>(Expression<Func<T, T2>> expression, IEnumerable<T2> values)
         {
             Builder.And();
             Resolver.QueryByIsIn(expression, values);

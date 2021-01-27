@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinQToSqlBuilder.DataAccess
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dapper.SqlBuilder", "LinQToSqlBuilder\Dapper.SqlBuilder.csproj", "{7DEBAE85-F889-4E8B-9F18-24A0AEE7EC2D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapper.SqlBuilder.Extensions", "Dapper.SqlBuilder.Extensions\Dapper.SqlBuilder.Extensions.csproj", "{F46072F7-3829-421F-9B57-622BFBC892B4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{7DEBAE85-F889-4E8B-9F18-24A0AEE7EC2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7DEBAE85-F889-4E8B-9F18-24A0AEE7EC2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7DEBAE85-F889-4E8B-9F18-24A0AEE7EC2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F46072F7-3829-421F-9B57-622BFBC892B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F46072F7-3829-421F-9B57-622BFBC892B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F46072F7-3829-421F-9B57-622BFBC892B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F46072F7-3829-421F-9B57-622BFBC892B4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
