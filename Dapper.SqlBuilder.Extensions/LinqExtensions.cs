@@ -17,8 +17,11 @@ namespace Dapper.SqlBuilder.Extensions
             var hd = typeof(T).GetProperties();
             foreach (var d in df)
             {
-                if (hd.Any(x => x.Name == d.Name))
+                var ss = hd.SingleOrDefault(x => x.Name == d.Name);
+                if (ss != null)
+                { 
                     h.SetObjectProperty(d.Name, source.GetObjectProperty(d.Name));
+                }
             }
             return h;
         }

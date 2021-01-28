@@ -52,7 +52,7 @@ namespace Dapper.SqlBuilder.Adapter
                 $"VALUES ({string.Join("), (", valuesToInsert)}) " +
                 (
                     !string.IsNullOrEmpty(output)
-                        ? $"SELECT LAST_INSERT_ID() "
+                        ? $"; SELECT LAST_INSERT_ID(); "
                         : string.Empty
                 )
                    .Trim();

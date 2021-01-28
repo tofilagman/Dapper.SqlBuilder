@@ -84,7 +84,10 @@ namespace Dapper.SqlBuilder.Resolver
         {
             var tableAttribute = type.GetCustomAttribute<TableAttribute>();
             if (tableAttribute != null)
-                return $"{tableAttribute.Schema ?? "dbo"}].[{tableAttribute.Name}";
+                if (string.IsNullOrEmpty(tableAttribute.Schema))
+                    return tableAttribute.Name;
+                else
+                    return $"{tableAttribute.Schema}.{tableAttribute.Name}";
             else
                 return $"{type.Name}";
         }

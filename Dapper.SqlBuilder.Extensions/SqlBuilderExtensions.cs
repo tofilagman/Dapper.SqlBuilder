@@ -45,15 +45,38 @@ namespace Dapper.SqlBuilder.Extensions
             return await con.QuerySingleOrDefaultAsync<T>(sqlBuilder.CommandText, sqlBuilder.CommandParameters, tran, timeOut);
         }
 
+        public static int Execute<T>(this SqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        {
+            return con.Execute(sqlBuilder.CommandText, sqlBuilder.CommandParameters, tran, timeOut);
+        }
+
         public static async Task<int> ExecuteAsync<T>(this SqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
         {
             return await con.ExecuteAsync(sqlBuilder.CommandText, sqlBuilder.CommandParameters, tran, timeOut);
         }
 
-        public static async Task<T2> QueryIdentityAsync<T, T2>(this SqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        public static int QueryIdentityInt<T>(this SqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
         {
             var iden = sqlBuilder.OutputIdentity();
-            return await con.QuerySingleAsync<T2>(iden.CommandText, iden.CommandParameters, tran, timeOut);
+            return con.QuerySingle<int>(iden.CommandText, iden.CommandParameters, tran, timeOut);
+        }
+
+        public static async Task<int> QueryIdentityIntAsync<T>(this SqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        {
+            var iden = sqlBuilder.OutputIdentity();
+            return await con.QuerySingleAsync<int>(iden.CommandText, iden.CommandParameters, tran, timeOut);
+        }
+
+        public static long QueryIdentityLong<T>(this SqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        {
+            var iden = sqlBuilder.OutputIdentity();
+            return con.QuerySingle<long>(iden.CommandText, iden.CommandParameters, tran, timeOut);
+        }
+
+        public static async Task<long> QueryIdentityLongAsync<T>(this SqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        {
+            var iden = sqlBuilder.OutputIdentity();
+            return await con.QuerySingleAsync<long>(iden.CommandText, iden.CommandParameters, tran, timeOut);
         }
 
     }

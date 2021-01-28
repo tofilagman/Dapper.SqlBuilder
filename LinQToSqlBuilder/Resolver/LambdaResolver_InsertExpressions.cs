@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Dapper.SqlBuilder.Adapter;
+using Dapper.SqlBuilder.Extensions;
 using Dapper.SqlBuilder.Resolver.ExpressionTree;
 
 namespace Dapper.SqlBuilder.Resolver
@@ -87,9 +88,44 @@ namespace Dapper.SqlBuilder.Resolver
                             Insert<T>(assignment);
                         }
                     }
-
                     break;
+                case ExpressionType.MemberAccess:
+                    if (!(expression is MemberExpression memberExpression))
+                        throw new ArgumentException("Invalid expression");
 
+                    if (memberExpression?.NodeType == ExpressionType.MemberAccess && memberExpression.Member.DeclaringType.IsNullable())
+                        memberExpression = memberExpression.Expression as MemberExpression;
+
+                    if (memberExpression.Type.IsClass && memberExpression.Type != typeof(String))
+                    {
+                        var properties = memberExpression.Type.GetProperties();
+                        var value = GetExpressionValue(memberExpression);
+
+                        for (var i = 0; i < properties.Length; i++)
+                        {
+                            var property = properties[i];
+                            var getter = property.GetMethod;
+                            var param = Expression.Constant(getter.Invoke(value, null), property.PropertyType);
+                            var binding = Expression.Bind(property, param);
+                            Insert<T>(binding);
+                        }
+                    }
+                    else if (memberExpression.Type.IsCollection())
+                    {
+                        throw new NotImplementedException("Use new object instead");
+                    }
+                    else
+                    {
+                        var columnName = GetColumnName(memberExpression);
+                        var node = ResolveQuery(memberExpression);
+                        if (node is ValueNode valueNode)
+                            Builder.AssignInsertField(columnName, valueNode.Value);
+                        else
+                        {
+                            BuildInsertAssignmentSql(columnName, node);
+                        }
+                    }
+                    break;
                 case ExpressionType.NewArrayInit:
                     if (!(expression is NewArrayExpression newArrayExpression))
                     {
@@ -101,21 +137,19 @@ namespace Dapper.SqlBuilder.Resolver
                         Builder.NextInsertRecord();
                         Insert<T>(recordInitExpression);
                     }
-
                     break;
-
                 default:
                     throw new ArgumentException("Invalid expression");
             }
         }
-        
+
         private void Insert<T>(MemberAssignment assignmentExpression)
         {
             var type = assignmentExpression.Expression.GetType();
 
             if (assignmentExpression.Expression is ConstantExpression constantExpression)
             {
-                var columnName      = GetColumnName(assignmentExpression);
+                var columnName = GetColumnName(assignmentExpression);
                 var expressionValue = GetExpressionValue(constantExpression);
                 Builder.AssignInsertField(columnName, expressionValue);
 
@@ -124,21 +158,32 @@ namespace Dapper.SqlBuilder.Resolver
 
             if (assignmentExpression.Expression is UnaryExpression unaryExpression)
             {
-                var columnName      = GetColumnName(assignmentExpression);
+                var columnName = GetColumnName(assignmentExpression);
                 var expressionValue = GetExpressionValue(unaryExpression);
                 Builder.AssignInsertField(columnName, expressionValue);
 
                 return;
             }
 
-            if (assignmentExpression.Expression is MemberExpression memberExpression)
+            if (assignmentExpression.Expression is MethodCallExpression methodExpression)
             {
-
+                var columnName = GetColumnName(assignmentExpression);
+                var node = ResolveQuery(methodExpression);
+                if (node is ValueNode valueNode)
+                    Builder.AssignInsertField(columnName, valueNode.Value);
+                else
+                {
+                    BuildInsertAssignmentSql(columnName, node);
+                }
+                return;
             }
 
-            else
+            if (assignmentExpression.Expression is MemberExpression memberExpression)
             {
-
+                var columnName = GetColumnName(assignmentExpression);
+                var node = GetExpressionValue(memberExpression);
+                Builder.AssignInsertField(columnName, node);
+                return;
             }
         }
 
@@ -171,7 +216,7 @@ namespace Dapper.SqlBuilder.Resolver
 
             if (assignmentExpression.Expression is ConstantExpression constantExpression)
             {
-                var columnName      = GetColumnName(assignmentExpression);
+                var columnName = GetColumnName(assignmentExpression);
                 var expressionValue = GetExpressionValue(constantExpression);
                 Builder.AssignInsertField(columnName, expressionValue);
 
@@ -180,7 +225,7 @@ namespace Dapper.SqlBuilder.Resolver
 
             if (assignmentExpression.Expression is UnaryExpression unaryExpression)
             {
-                var columnName      = GetColumnName(assignmentExpression);
+                var columnName = GetColumnName(assignmentExpression);
                 var expressionValue = GetExpressionValue(unaryExpression);
                 Builder.AssignInsertField(columnName, expressionValue);
 
@@ -200,7 +245,7 @@ namespace Dapper.SqlBuilder.Resolver
 
             }
         }
-        
+
         void BuildInsertAssignmentSql(string columnName, MemberNode sourceNode)
         {
             Builder.AssignInsertFieldFromSource(columnName, sourceNode.TableName, sourceNode.FieldName, _operationDictionary[ExpressionType.Equal]);

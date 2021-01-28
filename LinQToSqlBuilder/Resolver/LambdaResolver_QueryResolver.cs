@@ -21,26 +21,26 @@ namespace Dapper.SqlBuilder.Resolver
 
         private Node ResolveQuery(ConstantExpression constantExpression)
         {
-            return new ValueNode { Value = constantExpression.Value};
+            return new ValueNode { Value = constantExpression.Value };
         }
 
         private Node ResolveQuery(UnaryExpression unaryExpression)
         {
             return new SingleOperationNode
             {
-                            Operator = unaryExpression.NodeType,
-                            Child = ResolveQuery((dynamic) unaryExpression.Operand)
-                        };
+                Operator = unaryExpression.NodeType,
+                Child = ResolveQuery((dynamic)unaryExpression.Operand)
+            };
         }
 
         private Node ResolveQuery(BinaryExpression binaryExpression)
         {
             return new OperationNode
-                       {
-                           Left = ResolveQuery((dynamic) binaryExpression.Left),
-                           Operator = binaryExpression.NodeType,
-                           Right = ResolveQuery((dynamic) binaryExpression.Right)
-                       };
+            {
+                Left = ResolveQuery((dynamic)binaryExpression.Left),
+                Operator = binaryExpression.NodeType,
+                Right = ResolveQuery((dynamic)binaryExpression.Right)
+            };
         }
 
         private Node ResolveQuery(MethodCallExpression callExpression)
@@ -52,14 +52,14 @@ namespace Dapper.SqlBuilder.Resolver
 
                 return new LikeNode
                 {
-                               MemberNode = new MemberNode
-                               {
-                                           TableName = GetTableName(member),
-                                           FieldName = GetColumnName(callExpression.Object)
-                                       },
-                               Method = callFunction,
-                               Value = fieldValue
-                           };
+                    MemberNode = new MemberNode
+                    {
+                        TableName = GetTableName(member),
+                        FieldName = GetColumnName(callExpression.Object)
+                    },
+                    Method = callFunction,
+                    Value = fieldValue
+                };
             }
 
             var value = ResolveMethodCall(callExpression);
@@ -97,7 +97,8 @@ namespace Dapper.SqlBuilder.Resolver
                     };
 
                 default:
-                    throw new ArgumentException("Expected member expression"); }          
+                    throw new ArgumentException("Expected member expression");
+            }
         }
 
 
@@ -127,7 +128,7 @@ namespace Dapper.SqlBuilder.Resolver
             Builder.QueryByIsIn(GetTableName<T>(), fieldName, values);
         }
 
-#region Helpers
+        #region Helpers
 
         private object GetExpressionValue(Expression expression)
         {
@@ -137,8 +138,19 @@ namespace Dapper.SqlBuilder.Resolver
             switch (expression.NodeType)
             {
                 case ExpressionType.Constant:
-                    return (expression as ConstantExpression).Value;
+                    var conVal = (expression as ConstantExpression).Value;
 
+                    if (expression.Type.IsEnum)
+                    {
+                        try
+                        {
+                            return (int)Enum.Parse(expression.Type, conVal.ToString());
+                        }
+                        catch
+                        { }
+                    }
+
+                    return conVal;
                 case ExpressionType.Call:
                     return ResolveMethodCall(expression as MethodCallExpression);
 
@@ -147,12 +159,12 @@ namespace Dapper.SqlBuilder.Resolver
                     {
                         if (memberExpr.Expression == null)
                         {
-                            var value = ResolveValue((dynamic) memberExpr.Member, null);
+                            var value = ResolveValue((dynamic)memberExpr.Member, null);
                             return value;
                         }
 
                         var obj = GetExpressionValue(memberExpr.Expression);
-                        return ResolveValue((dynamic) memberExpr.Member, obj);
+                        return ResolveValue((dynamic)memberExpr.Member, obj);
                     }
                     throw new ArgumentException("Invalid expression");
                 case ExpressionType.Convert:
@@ -170,7 +182,7 @@ namespace Dapper.SqlBuilder.Resolver
         private object ResolveMethodCall(MethodCallExpression callExpression)
         {
             var arguments = callExpression.Arguments.Select(GetExpressionValue).ToArray();
-            var obj = callExpression.Object != null ? GetExpressionValue(callExpression.Object) : arguments.First();
+            var obj = callExpression.Object != null ? GetExpressionValue(callExpression.Object) : (arguments.Length > 0 ? arguments.First() : null);
 
             return callExpression.Method.Invoke(obj, arguments);
         }
@@ -185,15 +197,15 @@ namespace Dapper.SqlBuilder.Resolver
             return field.GetValue(obj);
         }
 
-#endregion
+        #endregion
 
-#region Fail functions
+        #region Fail functions
 
         private void ResolveQuery(Expression expression)
         {
             throw new ArgumentException(string.Format("The provided expression '{0}' is currently not supported", expression.NodeType));
         }
 
-#endregion
+        #endregion
     }
 }
