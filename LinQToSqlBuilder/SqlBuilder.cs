@@ -70,7 +70,7 @@ namespace Dapper.SqlBuilder
         /// <param name="expression">The expression that describes how to update the record</param>
         /// <returns>The instance of <see cref="SqlBuilder{T}"/> for chaining calls</returns>
 
-        public static SqlBuilder<T> Update<T>(Expression<Func<T, object>> expression)
+        public static SqlBuilder<T> Update<T>(Expression<Func<T, T>> expression)
         {
             return new SqlBuilder<T>()
             {
@@ -297,7 +297,7 @@ namespace Dapper.SqlBuilder
             return this;
         }
 
-        public SqlBuilder<T> Update(Expression<Func<T, object>> expression)
+        public SqlBuilder<T> Update(Expression<Func<T, T>> expression)
         {
             Resolver.Update(expression);
             return this;

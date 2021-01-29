@@ -7,7 +7,7 @@ namespace Dapper.SqlBuilder.Resolver
 {
     partial class LambdaResolver
     {
-        public void Update<T>(Expression<Func<T, object>> expression)
+        public void Update<T>(Expression<Func<T, T>> expression)
         {
             Update<T>(expression.Body);
         }
