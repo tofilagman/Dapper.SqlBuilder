@@ -19,23 +19,37 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         {
             //using var scope = new TransactionScope();
             var userEmail = "user@email.com";
-            var userId    = 5;
+            var userId = 5;
             var query = SqlBuilder.Update<User>(_ => new User
-                                   {
-                                       Email =
+            {
+                Email =
                                            _.Email.Replace("oldemail@domain.com", "newEmail@domain.com"),
-                                       LastChangePassword = DateTimeOffset.Now.AddDays(-1),
-                                       FailedLogIns       = _.FailedLogIns - 2
-                                   })
+                LastChangePassword = DateTimeOffset.Now.AddDays(-1),
+                FailedLogIns = _.FailedLogIns - 2
+            })
                                   .Where(user => user.Id == userId);
 
-            Assert.AreEqual("UPDATE [dbo].[Users] " +
+            Assert.AreEqual("UPDATE [Users] " +
                             "SET " +
                             "[Email] = REPLACE([Email], @Param1, @Param2), " +
                             "[LastChangePassword] = @Param3, " +
                             "[FailedLogIns] = [FailedLogIns] - @Param4 " +
-                            "WHERE [dbo].[Users].[Id] = @Param5",
+                            "WHERE [Users].[Id] = @Param5",
                             query.CommandText);
+        }
+
+        [Test]
+        public void UpdateByCustomObject()
+        {
+            var fdg = DateTime.Now;
+             
+            var query = SqlBuilder.Update<UserLog>(x => new UserLog
+            {
+                DateSlide = fdg
+            })
+              .Where(x => x.Guid == Guid.NewGuid());
+
+            Assert.AreEqual("UPDATE [userlog] SET [DateSlide] = @Param1 WHERE [userlog].[Guid] = @Param2", query.CommandText);
         }
     }
 }

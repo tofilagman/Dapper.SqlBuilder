@@ -78,12 +78,7 @@ namespace Dapper.SqlBuilder
             }
                .Update(expression);
         }
-
-        public static SqlBuilder<T> Update<T>(T data)
-        {
-            return Update<T>(x => data);
-        }
-
+         
         /// <summary>
         /// Prepares a delete command to specified <typeparamref name="T"/> 
         /// </summary>

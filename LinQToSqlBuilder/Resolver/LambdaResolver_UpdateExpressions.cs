@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dapper.SqlBuilder.Extensions;
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -29,9 +30,8 @@ namespace Dapper.SqlBuilder.Resolver
                         {
                             Update<T>(assignment);
                         }
-                    }
-
-                    break;
+                    } 
+                    break; 
                 default:
                     throw new ArgumentException("Invalid expression");
             }
@@ -88,6 +88,15 @@ namespace Dapper.SqlBuilder.Resolver
             {
                 ResolveUpdateMethodCall(mce);
             }
+
+            if(assignmentExpression.Expression is MemberExpression memberExpression)
+            {
+                var columnName = GetColumnName(assignmentExpression);
+                var expressionValue = GetExpressionValue(memberExpression);
+                Builder.UpdateAssignField(columnName, expressionValue);
+
+                return;
+            } 
         }
 
         private void ResolveUpdateMethodCall(MethodCallExpression callExpression)

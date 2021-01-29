@@ -21,7 +21,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
 
 
             Assert.AreEqual(query.CommandText,
-                            "DELETE FROM [dbo].[CloneUserGroup] WHERE [dbo].[CloneUserGroup].[IsDeleted] = @Param1");
+                            "DELETE FROM [CloneUserGroup] WHERE [CloneUserGroup].[IsDeleted] = @Param1");
         }
     }
 }
