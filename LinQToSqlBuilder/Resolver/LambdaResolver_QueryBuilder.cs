@@ -17,7 +17,7 @@ namespace Dapper.SqlBuilder.Resolver
 
         void BuildSql(LikeNode node)
         {
-            if(node.Method == LikeMethod.Equals)
+            if (node.Method == LikeMethod.Equals)
             {
                 Builder.QueryByField(node.MemberNode.TableName, node.MemberNode.FieldName,
                     _operationDictionary[ExpressionType.Equal], node.Value);
@@ -43,7 +43,12 @@ namespace Dapper.SqlBuilder.Resolver
 
         void BuildSql(OperationNode node)
         {
-            BuildSql((dynamic)node.Left, (dynamic)node.Right, node.Operator);
+            if (node.Left is SingleOperationNode singllefteOp && node.Right is SingleOperationNode singleRightop)
+            {
+                BuildSql((dynamic)singllefteOp.Child, (dynamic)singleRightop.Child, node.Operator);
+            }
+            else
+                BuildSql((dynamic)node.Left, (dynamic)node.Right, node.Operator);
         }
 
         void BuildSql(MemberNode memberNode)
@@ -53,20 +58,26 @@ namespace Dapper.SqlBuilder.Resolver
 
         void BuildSql(SingleOperationNode node)
         {
-            if(node.Operator == ExpressionType.Not)
+            if (node.Operator == ExpressionType.Not)
                 Builder.Not();
             BuildSql(node.Child);
         }
 
         void BuildSql(MemberNode memberNode, ValueNode valueNode, ExpressionType op)
         {
-            if(valueNode.Value == null)
+            if (valueNode.Value == null)
             {
                 ResolveNullValue(memberNode, op);
             }
             else
             {
-                Builder.QueryByField(memberNode.TableName, memberNode.FieldName, _operationDictionary[op], valueNode.Value);
+                var value = valueNode.Value;
+                var tp = valueNode.Value.GetType();
+                if (tp.IsEnum)
+                {
+                    value = (int)Enum.Parse(tp, value.ToString());
+                }
+                Builder.QueryByField(memberNode.TableName, memberNode.FieldName, _operationDictionary[op], value);
             }
         }
 
@@ -82,7 +93,7 @@ namespace Dapper.SqlBuilder.Resolver
 
         void BuildSql(SingleOperationNode leftMember, Node rightMember, ExpressionType op)
         {
-            if (leftMember.Operator == ExpressionType.Not)              
+            if (leftMember.Operator == ExpressionType.Not)
                 BuildSql(leftMember as Node, rightMember, op);
             else
                 BuildSql((dynamic)leftMember.Child, (dynamic)rightMember, op);
@@ -124,7 +135,7 @@ namespace Dapper.SqlBuilder.Resolver
                     break;
             }
         }
-        
+
         void ResolveOperation(ExpressionType op)
         {
             switch (op)

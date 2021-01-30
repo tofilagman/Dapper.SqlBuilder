@@ -214,5 +214,22 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
 
             Assert.IsTrue(true);
         }
+
+        [Test]
+        public void WhereEnum()
+        {
+            var userType = UserTypeEnum.Player;
+            var query = SqlBuilder.Select<PermissionGroup>().Where(x => x.UserType == userType);
+            Assert.AreEqual(query.CommandText, "SELECT [permissiongroups].* FROM [permissiongroups] WHERE [permissiongroups].[UserType] = @Param1");
+            Assert.AreEqual(query.CommandParameters.First().Value, 4);
+        }
+
+        [Test]
+        public void WhereEnumInPlace()
+        { 
+            var query = SqlBuilder.Select<PermissionGroup>().Where(x => x.UserType == UserTypeEnum.Player);
+            Assert.AreEqual(query.CommandText, "SELECT [permissiongroups].* FROM [permissiongroups] WHERE [permissiongroups].[UserType] = @Param1");
+            Assert.AreEqual(query.CommandParameters.First().Value, 4);
+        }
     }
 }

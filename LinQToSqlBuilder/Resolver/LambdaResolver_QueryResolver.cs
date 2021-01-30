@@ -142,14 +142,9 @@ namespace Dapper.SqlBuilder.Resolver
 
                     if (expression.Type.IsEnum)
                     {
-                        try
-                        {
-                            return (int)Enum.Parse(expression.Type, conVal.ToString());
-                        }
-                        catch
-                        { }
+                        return (int)Enum.Parse(expression.Type, conVal.ToString());
                     }
-
+                     
                     return conVal;
                 case ExpressionType.Call:
                     return ResolveMethodCall(expression as MethodCallExpression);
