@@ -8,7 +8,11 @@ This lib was repack and use to replace Dapper.Contrib to work for [MsSQL, MySql]
 Nuget Package
 ============
 
-[https://www.nuget.org/packages/Dapper.SqlBuilder.Unofficial/1.0.1](https://www.nuget.org/packages/Dapper.SqlBuilder.Unofficial/1.0.1)
+[https://www.nuget.org/packages/Dapper.SqlBuilder.Unofficial/](https://www.nuget.org/packages/Dapper.SqlBuilder.Unofficial/)
+
+To implement Dapper Chain Extensions
+
+[https://www.nuget.org/packages/Dapper.SqlBuilder.Unofficial.Extensions/](https://www.nuget.org/packages/Dapper.SqlBuilder.Unofficial.Extensions/)
 
 At the moment the library supports .Net Core 2.1 and above.
 
