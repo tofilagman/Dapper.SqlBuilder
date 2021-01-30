@@ -113,6 +113,9 @@ namespace Dapper.SqlBuilder.Resolver
                     return expression as MemberExpression;
                 case ExpressionType.Convert:
                     return GetMemberExpression((expression as UnaryExpression)?.Operand);
+                case ExpressionType.Lambda:
+                    return GetMemberExpression((expression as LambdaExpression).Body);
+
             }
 
             throw new ArgumentException("Member expression expected");

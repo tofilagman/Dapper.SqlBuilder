@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Dapper.SqlBuilder;
 using Dapper.SqlBuilder.Adapter;
@@ -50,12 +51,12 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         public void QueryFieldsWithPagination()
         {
             var query = SqlBuilder.Select<User, UserViewModel>(user => new UserViewModel
-                                   {
-                                       Email     = user.Email,
-                                       FirstName = user.FirstName,
-                                       LastName  = user.LastName,
-                                       Id        = user.Id
-                                   })
+            {
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Id = user.Id
+            })
                                   .Where(_ => !_.RecordDeleted)
                                   .OrderBy(_ => _.Id)
                                   .Take(10);
@@ -96,7 +97,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             var query = SqlBuilder.Select<User>()
                                   .Where(user => user.Email == userEmail);
 
-            Assert.AreEqual("SELECT [Users].* FROM [Users] WHERE [Users].[Email] = @Param1", 
+            Assert.AreEqual("SELECT [Users].* FROM [Users] WHERE [Users].[Email] = @Param1",
                             query.CommandText);
 
             Assert.AreEqual(userEmail,
@@ -135,25 +136,25 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         [Test]
         public void FindByJoinedEntityValue()
         {
-            var email   = $"someemail@domain.com";
+            var email = $"someemail@domain.com";
             var groupId = 3;
             var query = SqlBuilder.Select<User>()
                                   .Join<UserUserGroup>((@user, @group) => user.Id == group.UserId)
-                                  .Join<UserGroup>((group,     g) => group.UserGroupId == g.Id)
+                                  .Join<UserGroup>((group, g) => group.UserGroupId == g.Id)
                                   .Where(group => group.Id == groupId);
 
             Assert.AreEqual("SELECT [Users].*, [UsersUserGroup].*, [UsersGroup].* " +
                             "FROM [Users] " +
                             "JOIN [UsersUserGroup] ON [Users].[Id] = [UsersUserGroup].[UserId] " +
                             "JOIN [UsersGroup] ON [UsersUserGroup].[UserGroupId] = [UsersGroup].[Id] " +
-                            "WHERE [UsersGroup].[Id] = @Param1", 
+                            "WHERE [UsersGroup].[Id] = @Param1",
                             query.CommandText);
 
 
             var query2 = SqlBuilder.Select<User>()
                                    .Where(user => user.Email == email)
                                    .Join<UserUserGroup>((@user, @group) => user.Id == group.UserId)
-                                   .Join<UserGroup>((group,     g) => group.UserGroupId == g.Id)
+                                   .Join<UserGroup>((group, g) => group.UserGroupId == g.Id)
                                    .Where(group => group.Id == groupId);
 
             Assert.AreEqual("SELECT [Users].*, [UsersUserGroup].*, [UsersGroup].* " +
@@ -226,10 +227,46 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
 
         [Test]
         public void WhereEnumInPlace()
-        { 
+        {
             var query = SqlBuilder.Select<PermissionGroup>().Where(x => x.UserType == UserTypeEnum.Player);
             Assert.AreEqual(query.CommandText, "SELECT [permissiongroups].* FROM [permissiongroups] WHERE [permissiongroups].[UserType] = @Param1");
             Assert.AreEqual(query.CommandParameters.First().Value, 4);
+        }
+
+        [Test]
+        public void WhereIsInLambdaList()
+        { 
+            var permItem = SqlBuilder.Select<PermissionGroup>().WhereIsIn(x => x.ID_Perm, new List<int> { 1, 2, 4 });
+
+            Assert.AreEqual(permItem.CommandText, "SELECT [permissiongroups].* FROM [permissiongroups] WHERE [permissiongroups].[ID_Perm] IN (@Param1,@Param2,@Param3)");
+            Assert.AreEqual(permItem.CommandParameters.Count, 3);
+        }
+
+        [Test]
+        public void WhereIsInLambdaArray()
+        { 
+            var permItem = SqlBuilder.Select<PermissionGroup>().WhereIsIn(x => x.ID_Perm, new int[] { 1, 2, 4 });
+
+            Assert.AreEqual(permItem.CommandText, "SELECT [permissiongroups].* FROM [permissiongroups] WHERE [permissiongroups].[ID_Perm] IN (@Param1,@Param2,@Param3)");
+            Assert.AreEqual(permItem.CommandParameters.Count, 3);
+        }
+
+        [Test]
+        public void WhereIsInLambdaLinq()
+        {
+            var perm = new List<PermissionGroup>()
+            {
+                new  PermissionGroup{ ID = 1, Name = "Test1" },
+                new  PermissionGroup{ ID = 1, Name = "Test2" },
+                new  PermissionGroup{ ID = 1, Name = "Test3" },
+                new  PermissionGroup{ ID = 1, Name = "Test4" },
+                new  PermissionGroup{ ID = 1, Name = "Test5" },
+            };
+
+            var permItem = SqlBuilder.Select<PermissionGroup>().WhereIsIn(x => x.ID_Perm, perm.Select(x=> x.ID));
+
+            Assert.AreEqual(permItem.CommandText, "SELECT [permissiongroups].* FROM [permissiongroups] WHERE [permissiongroups].[ID_Perm] IN (@Param1,@Param2,@Param3,@Param4,@Param5)");
+            Assert.AreEqual(permItem.CommandParameters.Count, 5);
         }
     }
 }
