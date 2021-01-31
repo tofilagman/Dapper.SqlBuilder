@@ -73,8 +73,8 @@ namespace Dapper.SqlBuilder.Adapter
 
         public string DeleteCommand(string source, string conditions)
         {
-            if (string.IsNullOrEmpty(conditions))
-                throw new ArgumentNullException(nameof(conditions));
+            //if (string.IsNullOrEmpty(conditions))
+            //    throw new ArgumentNullException(nameof(conditions));
 
             return $"DELETE FROM {source} " +
                    $"{conditions}"

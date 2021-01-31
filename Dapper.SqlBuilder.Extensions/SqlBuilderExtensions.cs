@@ -10,7 +10,7 @@ namespace Dapper.SqlBuilder.Extensions
     {
         public static async Task DeleteTableAsync<T>(this IDbConnection con, IDbTransaction tran = null)
         {
-            var delSql = SqlBuilder.Delete<T>();
+            var delSql = SqlBuilder.Delete<T>(x => 1 == 1);
             await con.ExecuteAsync(delSql.CommandText, transaction: tran);
         }
 

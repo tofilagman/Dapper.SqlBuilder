@@ -51,6 +51,11 @@ namespace Dapper.SqlBuilder.Resolver
                 BuildSql((dynamic)node.Left, (dynamic)node.Right, node.Operator);
         }
 
+        void BuildSql(ValueNode valueNode)
+        {
+            throw new ArgumentException("Invalid Expression");
+        }
+
         void BuildSql(MemberNode memberNode)
         {
             Builder.QueryByField(memberNode.TableName, memberNode.FieldName, _operationDictionary[ExpressionType.Equal], true);

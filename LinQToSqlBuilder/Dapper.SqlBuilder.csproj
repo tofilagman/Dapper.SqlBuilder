@@ -3,10 +3,10 @@
 	<PropertyGroup>
 		<TargetFrameworks>netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
 		<PackageId>Dapper.SqlBuilder.Unofficial</PackageId>
-		<Version>1.0.5</Version>
+		<Version>1.0.6</Version>
 		<Copyright></Copyright>
 		<Authors>DotNet Brightener, tofi lagman</Authors>
-		<Company></Company>
+		<Company>Dapper.SqlBuilder.Unofficial</Company>
 		<PackageDescription>A small library that help you convert LinQ lambda expression into raw SQL queries with strongly type manner.</PackageDescription>
 		<RepositoryUrl>https://github.com/tofilagman/Dapper.SqlBuilder</RepositoryUrl>
 		<AssemblyName>Dapper.SqlBuilder</AssemblyName>
@@ -19,6 +19,7 @@
 		<Product>Dapper.SqlBuilder.Unofficial</Product>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+		<Description>Dapper.Contrib Alternative</Description>
 	</PropertyGroup>
 
 </Project>

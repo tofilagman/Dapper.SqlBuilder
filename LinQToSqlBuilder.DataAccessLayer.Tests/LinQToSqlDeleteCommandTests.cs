@@ -2,6 +2,7 @@
 using Dapper.SqlBuilder.Adapter;
 using LinQToSqlBuilder.DataAccessLayer.Tests.Entities;
 using NUnit.Framework;
+using System;
 
 namespace LinQToSqlBuilder.DataAccessLayer.Tests
 {
@@ -22,6 +23,22 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
 
             Assert.AreEqual(query.CommandText,
                             "DELETE FROM [CloneUserGroup] WHERE [CloneUserGroup].[IsDeleted] = @Param1");
+        }
+
+        [Test]
+        public void DeleteByInvalidExpression()
+        { 
+            Assert.Throws<ArgumentException>(() => {
+                SqlBuilder.Delete<PermissionGroup>(x => 1 == 1);
+            });
+        }
+
+        [Test]
+        public void DeleteAll()
+        {
+            var query = SqlBuilder.Delete<PermissionGroup>();
+            Assert.AreEqual(query.CommandText, "DELETE FROM [permissiongroups]");
+            Assert.IsTrue(query.CommandParameters.Count == 0);
         }
     }
 }
