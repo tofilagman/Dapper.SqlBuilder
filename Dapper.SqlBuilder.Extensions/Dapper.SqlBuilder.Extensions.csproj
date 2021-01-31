@@ -9,7 +9,8 @@
     <Company>Dapper.SqlBuilder.Unofficial.Extensions</Company>
     <Product>Dapper.SqlBuilder.Unofficial.Extensions</Product>
     <RepositoryUrl>https://github.com/tofilagman/Dapper.SqlBuilder</RepositoryUrl>
-    <Version>1.0.4</Version>
+    <Version>1.0.5</Version>
+    <Description>Dapper Chain Extension</Description>
   </PropertyGroup>
 
   <ItemGroup>
