@@ -43,11 +43,6 @@ namespace Dapper.SqlBuilder
             }.Insert(expression);
         }
 
-        public static SqlBuilder<T> InsertMany<T>(IEnumerable<T> expression)
-        {
-            return InsertMany<T>(x => expression);
-        }
-
         /// <summary>
         /// Prepares an insert command to copy record(s) from specific <typeparamref name="T"/> table to the <typeparamref name="TTo"/>  destination table
         /// </summary>

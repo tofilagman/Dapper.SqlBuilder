@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Dapper.SqlBuilder;
 using Dapper.SqlBuilder.Adapter;
 using LinQToSqlBuilder.DataAccessLayer.Tests.Base;
@@ -21,11 +22,11 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         {
             var query = SqlBuilder.Insert<UserGroup>(_ => new UserGroup
             {
-                CreatedBy   = "TestSystem",
+                CreatedBy = "TestSystem",
                 CreatedDate = DateTimeOffset.Now,
                 Description = "Created from Test System",
-                Name        = "TestUserGroup",
-                IsDeleted   = false
+                Name = "TestUserGroup",
+                IsDeleted = false
             });
 
             Assert.AreEqual("INSERT INTO [UsersGroup] ([CreatedBy], [CreatedDate], [Description], [Name], [IsDeleted]) " +
@@ -37,13 +38,13 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         public void InsertSingleRecordWithOutputIdentity()
         {
             var query = SqlBuilder.Insert<UserGroup>(_ => new UserGroup
-                                   {
-                                       CreatedBy   = "TestSystem",
-                                       CreatedDate = DateTimeOffset.Now,
-                                       Description = "Created from Test System",
-                                       Name        = "TestUserGroup",
-                                       IsDeleted   = false
-                                   })
+            {
+                CreatedBy = "TestSystem",
+                CreatedDate = DateTimeOffset.Now,
+                Description = "Created from Test System",
+                Name = "TestUserGroup",
+                IsDeleted = false
+            })
                                   .OutputIdentity();
 
             Assert.AreEqual("INSERT INTO [UsersGroup] ([CreatedBy], [CreatedDate], [Description], [Name], [IsDeleted]) " +
@@ -55,7 +56,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         [Test]
         public void InsertMultipleRecords()
         {
-            var query = SqlBuilder.InsertMany<UserGroup>(_ => new []
+            var query = SqlBuilder.InsertMany<UserGroup>(_ => new[]
             {
                 new UserGroup
                 {
@@ -86,26 +87,26 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             });
 
 
-            Assert.AreEqual("INSERT INTO [UsersGroup] ([CreatedBy], [CreatedDate], [Description], [Name], [IsDeleted]) "+
+            Assert.AreEqual("INSERT INTO [UsersGroup] ([CreatedBy], [CreatedDate], [Description], [Name], [IsDeleted]) " +
                             "VALUES (@Param1, @Param2, @Param3, @Param4, @Param5), " +
                             "(@Param6, @Param7, @Param8, @Param9, @Param10), " +
                             "(@Param11, @Param12, @Param13, @Param14, @Param15)",
                             query.CommandText);
         }
-    
+
         [Test]
         public void InsertRecordFromAnotherTables()
         {
             var query = SqlBuilder.InsertFrom<UserGroup, CloneUserGroup>(userGroup => new CloneUserGroup()
-                                   {
-                                       CreatedBy     = "Cloning System",
-                                       CreatedDate   = DateTimeOffset.Now,
-                                       Description   = userGroup.Description,
-                                       Name          = userGroup.Name,
-                                       IsDeleted     = userGroup.IsDeleted,
-                                       IsUndeletable = userGroup.IsUndeletable,
-                                       OriginalId    = userGroup.Id
-                                   })
+            {
+                CreatedBy = "Cloning System",
+                CreatedDate = DateTimeOffset.Now,
+                Description = userGroup.Description,
+                Name = userGroup.Name,
+                IsDeleted = userGroup.IsDeleted,
+                IsUndeletable = userGroup.IsUndeletable,
+                OriginalId = userGroup.Id
+            })
                                   .Where(group => group.IsDeleted == false);
 
             Assert.AreEqual("INSERT INTO [CloneUserGroup] ([CreatedBy], [CreatedDate], [Description], [Name], [IsDeleted], [IsUndeletable], [OriginalId]) " +
@@ -121,5 +122,22 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                           "WHERE [UsersGroup].[IsDeleted] = @Param3",
                             query.CommandText);
         }
+
+
+        [Test]
+        public void InsertWithIdentityKey()
+        {
+            var perm = new PermissionGroup
+            {
+                ID_Perm = 2,
+                Name = "Test",
+                ResourcePath = "ss",
+                UserType = UserTypeEnum.Agent
+            };
+
+            var query = SqlBuilder.Insert(perm);
+            Assert.AreEqual(query.CommandText, "INSERT INTO [permissiongroups] ([Name], [ResourcePath], [UserType], [ID_Perm]) VALUES (@Param1, @Param2, @Param3, @Param4)");
+        }
+
     }
 }

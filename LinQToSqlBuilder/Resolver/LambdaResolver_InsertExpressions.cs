@@ -104,6 +104,10 @@ namespace Dapper.SqlBuilder.Resolver
                         for (var i = 0; i < properties.Length; i++)
                         {
                             var property = properties[i];
+
+                            if (property.GetCustomAttribute(typeof(KeyAttribute)) != null)
+                                continue;
+
                             var getter = property.GetMethod;
                             var param = Expression.Constant(getter.Invoke(value, null), property.PropertyType);
                             var binding = Expression.Bind(property, param);
