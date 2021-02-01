@@ -43,6 +43,11 @@ namespace Dapper.SqlBuilder
             }.Insert(expression);
         }
 
+        public static SqlBuilder<T> InsertMany<T>(IEnumerable<T> arr)
+        {
+            return InsertMany<T>(x => arr);
+        }
+
         /// <summary>
         /// Prepares an insert command to copy record(s) from specific <typeparamref name="T"/> table to the <typeparamref name="TTo"/>  destination table
         /// </summary>
@@ -73,7 +78,7 @@ namespace Dapper.SqlBuilder
             }
                .Update(expression);
         }
-         
+
         /// <summary>
         /// Prepares a delete command to specified <typeparamref name="T"/> 
         /// </summary>

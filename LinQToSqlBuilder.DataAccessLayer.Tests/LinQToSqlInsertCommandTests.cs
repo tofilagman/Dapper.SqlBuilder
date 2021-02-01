@@ -139,5 +139,122 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             Assert.AreEqual(query.CommandText, "INSERT INTO [permissiongroups] ([Name], [ResourcePath], [UserType], [ID_Perm]) VALUES (@Param1, @Param2, @Param3, @Param4)");
         }
 
+        [Test]
+        public void InsertMultipleTableObjectArray()
+        {
+            var arr = new[]
+           {
+                new UserGroup
+                {
+                    CreatedBy   = "TestSystem",
+                    CreatedDate = DateTimeOffset.Now,
+                    Description = "Created from Test System",
+                    Name        = "TestUserGroup",
+                    IsDeleted   = false
+                },
+
+                new UserGroup
+                {
+                    CreatedBy   = "TestSystem",
+                    CreatedDate = DateTimeOffset.Now,
+                    Description = "Created from Test System",
+                    Name        = "TestUserGroup2",
+                    IsDeleted   = false
+                },
+
+                new UserGroup
+                {
+                    CreatedBy   = "TestSystem",
+                    CreatedDate = DateTimeOffset.Now,
+                    Description = "Created from Test System",
+                    Name        = "TestUserGroup3",
+                    IsDeleted   = false
+                }
+            };
+
+            var query = SqlBuilder.InsertMany<UserGroup>(_ => arr);
+
+            Assert.AreEqual("INSERT INTO [UsersGroup] ([Name], [Description], [IsUndeletable], [IsDeleted], [CreatedDate], [ModifiedDate], [CreatedBy], [ModifiedBy]) VALUES (@Param1, @Param2, @Param3, @Param4, @Param5, @Param6, @Param7, @Param8), (@Param9, @Param10, @Param11, @Param12, @Param13, @Param14, @Param15, @Param16), (@Param17, @Param18, @Param19, @Param20, @Param21, @Param22, @Param23, @Param24)",
+                            query.CommandText);
+        }
+
+        [Test]
+        public void InsertMultipleTableObjectList()
+        {
+            var arr = new List<UserGroup>
+           {
+                new UserGroup
+                {
+                    CreatedBy = "TestSystem",
+                    CreatedDate = DateTimeOffset.Now,
+                    Description = "Created from Test System",
+                    Name = "TestUserGroup",
+                    IsDeleted = false
+                },
+
+                new UserGroup
+                {
+                    CreatedBy = "TestSystem",
+                    CreatedDate = DateTimeOffset.Now,
+                    Description = "Created from Test System",
+                    Name = "TestUserGroup2",
+                    IsDeleted = false
+                },
+
+                new UserGroup
+                {
+                    CreatedBy = "TestSystem",
+                    CreatedDate = DateTimeOffset.Now,
+                    Description = "Created from Test System",
+                    Name = "TestUserGroup3",
+                    IsDeleted = false
+                }
+            };
+
+            var query = SqlBuilder.InsertMany<UserGroup>(_ => arr);
+
+            Assert.AreEqual("INSERT INTO [UsersGroup] ([Name], [Description], [IsUndeletable], [IsDeleted], [CreatedDate], [ModifiedDate], [CreatedBy], [ModifiedBy]) VALUES (@Param1, @Param2, @Param3, @Param4, @Param5, @Param6, @Param7, @Param8), (@Param9, @Param10, @Param11, @Param12, @Param13, @Param14, @Param15, @Param16), (@Param17, @Param18, @Param19, @Param20, @Param21, @Param22, @Param23, @Param24)",
+                            query.CommandText);
+        }
+
+        [Test]
+        public void InsertMultipleTableObjectArrayByParam()
+        {
+            var arr = new[]
+           {
+                new UserGroup
+                {
+                    CreatedBy   = "TestSystem",
+                    CreatedDate = DateTimeOffset.Now,
+                    Description = "Created from Test System",
+                    Name        = "TestUserGroup",
+                    IsDeleted   = false
+                },
+
+                new UserGroup
+                {
+                    CreatedBy   = "TestSystem",
+                    CreatedDate = DateTimeOffset.Now,
+                    Description = "Created from Test System",
+                    Name        = "TestUserGroup2",
+                    IsDeleted   = false
+                },
+
+                new UserGroup
+                {
+                    CreatedBy   = "TestSystem",
+                    CreatedDate = DateTimeOffset.Now,
+                    Description = "Created from Test System",
+                    Name        = "TestUserGroup3",
+                    IsDeleted   = false
+                }
+            };
+
+            var query = SqlBuilder.InsertMany(arr);
+
+            Assert.AreEqual("INSERT INTO [UsersGroup] ([Name], [Description], [IsUndeletable], [IsDeleted], [CreatedDate], [ModifiedDate], [CreatedBy], [ModifiedBy]) VALUES (@Param1, @Param2, @Param3, @Param4, @Param5, @Param6, @Param7, @Param8), (@Param9, @Param10, @Param11, @Param12, @Param13, @Param14, @Param15, @Param16), (@Param17, @Param18, @Param19, @Param20, @Param21, @Param22, @Param23, @Param24)",
+                            query.CommandText);
+        }
+
     }
 }

@@ -96,27 +96,18 @@ namespace Dapper.SqlBuilder.Resolver
                     if (memberExpression?.NodeType == ExpressionType.MemberAccess && memberExpression.Member.DeclaringType.IsNullable())
                         memberExpression = memberExpression.Expression as MemberExpression;
 
-                    if (memberExpression.Type.IsClass && memberExpression.Type != typeof(String))
+                    if (memberExpression.Type.IsCollection())
                     {
-                        var properties = memberExpression.Type.GetProperties();
-                        var value = GetExpressionValue(memberExpression);
-
-                        for (var i = 0; i < properties.Length; i++)
+                        var nval = (IEnumerable<T>)GetExpressionValue(memberExpression);
+                        foreach (var pval in nval)
                         {
-                            var property = properties[i];
-
-                            if (property.GetCustomAttribute(typeof(KeyAttribute)) != null)
-                                continue;
-
-                            var getter = property.GetMethod;
-                            var param = Expression.Constant(getter.Invoke(value, null), property.PropertyType);
-                            var binding = Expression.Bind(property, param);
-                            Insert<T>(binding);
+                            Builder.NextInsertRecord();
+                            Insert<T>(Expression.Constant(pval));
                         }
                     }
-                    else if (memberExpression.Type.IsCollection())
+                    else if (memberExpression.Type.IsClass && memberExpression.Type != typeof(string))
                     {
-                        throw new NotImplementedException("Use new object instead");
+                        ResolveClassExpression<T>(memberExpression);
                     }
                     else
                     {
@@ -140,6 +131,35 @@ namespace Dapper.SqlBuilder.Resolver
                     {
                         Builder.NextInsertRecord();
                         Insert<T>(recordInitExpression);
+                    }
+                    break;
+                case ExpressionType.Constant:
+                    if (!(expression is ConstantExpression constantExpression))
+                        throw new ArgumentException("Invalid expression");
+
+                    if (constantExpression.Type.IsCollection())
+                    {
+                        var nval = (IEnumerable<T>)GetExpressionValue(constantExpression);
+                        foreach (var pval in nval)
+                        {
+                            Builder.NextInsertRecord();
+                            Insert<T>(Expression.Constant(pval));
+                        }
+                    }
+                    else if (constantExpression.Type.IsClass && constantExpression.Type != typeof(String))
+                    {
+                        ResolveClassExpression<T>(constantExpression);
+                    }
+                    else
+                    {
+                        var columnName = GetColumnName(constantExpression);
+                        var node = ResolveQuery(constantExpression);
+                        if (node is ValueNode valueNode)
+                            Builder.AssignInsertField(columnName, valueNode.Value);
+                        else
+                        {
+                            BuildInsertAssignmentSql(columnName, node);
+                        }
                     }
                     break;
                 default:
@@ -188,6 +208,25 @@ namespace Dapper.SqlBuilder.Resolver
                 var node = GetExpressionValue(memberExpression);
                 Builder.AssignInsertField(columnName, node);
                 return;
+            }
+        }
+
+        private void ResolveClassExpression<T>(Expression expr)
+        {
+            var properties = expr.Type.GetProperties();
+            var value = GetExpressionValue(expr);
+
+            for (var i = 0; i < properties.Length; i++)
+            {
+                var property = properties[i];
+
+                if (property.GetCustomAttribute(typeof(KeyAttribute)) != null)
+                    continue;
+
+                var getter = property.GetMethod;
+                var param = Expression.Constant(getter.Invoke(value, null), property.PropertyType);
+                var binding = Expression.Bind(property, param);
+                Insert<T>(binding);
             }
         }
 
