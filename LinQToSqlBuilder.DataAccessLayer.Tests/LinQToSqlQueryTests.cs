@@ -268,5 +268,38 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             Assert.AreEqual(permItem.CommandText, "SELECT [permissiongroups].* FROM [permissiongroups] WHERE [permissiongroups].[ID_Perm] IN (@Param1,@Param2,@Param3,@Param4,@Param5)");
             Assert.AreEqual(permItem.CommandParameters.Count, 5);
         }
+
+        [Test]
+        public void WhereBetween()
+        {
+            var perm = SqlBuilder.Select<PermissionGroup>().WhereBetween(x=> x.Date, DateTime.Now, DateTime.Now.AddDays(1));
+            Assert.AreEqual(perm.CommandText, "SELECT [permissiongroups].* FROM [permissiongroups] WHERE ([permissiongroups].[Date] BETWEEN @Param1 AND @Param2)");
+            Assert.AreEqual(perm.CommandParameters.Count, 2);
+        }
+
+        [Test]
+        public void WhereBetweenAnd()
+        {
+            var perm = SqlBuilder.Select<PermissionGroup>().Where(x=> x.Name == "Test").AndBetween(x => x.Date, DateTime.Now, DateTime.Now.AddDays(1));
+            Assert.AreEqual(perm.CommandText, "SELECT [permissiongroups].* FROM [permissiongroups] WHERE [permissiongroups].[Name] = @Param1 AND ([permissiongroups].[Date] BETWEEN @Param2 AND @Param3)");
+            Assert.AreEqual(perm.CommandParameters.Count, 3);
+        }
+
+        [Test]
+        public void WhereNotBetween()
+        {
+            var perm = SqlBuilder.Select<PermissionGroup>().WhereNotBetween(x => x.Date, DateTime.Now, DateTime.Now.AddDays(1));
+            Assert.AreEqual(perm.CommandText, "SELECT [permissiongroups].* FROM [permissiongroups] WHERE ([permissiongroups].[Date] NOT BETWEEN @Param1 AND @Param2)");
+            Assert.AreEqual(perm.CommandParameters.Count, 2);
+        }
+
+        [Test]
+        public void WhereBetweenMySql()
+        {
+            SqlBuilder.SetAdapter(new MySqlAdapter());
+            var perm = SqlBuilder.Select<PermissionGroup>().Where(x => x.Name == "Test").AndBetween(x => x.Date, DateTime.Now, DateTime.Now.AddDays(1));
+            Assert.AreEqual(perm.CommandText, "SELECT permissiongroups.* FROM permissiongroups WHERE permissiongroups.Name = @Param1 AND (permissiongroups.Date BETWEEN @Param2 AND @Param3)");
+            Assert.AreEqual(perm.CommandParameters.Count, 3);
+        }
     }
 }

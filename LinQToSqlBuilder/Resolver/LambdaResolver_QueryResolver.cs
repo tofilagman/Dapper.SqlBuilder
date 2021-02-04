@@ -128,6 +128,12 @@ namespace Dapper.SqlBuilder.Resolver
             Builder.QueryByIsIn(GetTableName<T>(), fieldName, values);
         }
 
+        public void QueryBetween<T, T2>(Expression<Func<T, T2>> expression, T2 start, T2 end, bool not)
+        {
+            var fieldName = GetColumnName(expression);
+            Builder.QueryBetween(GetTableName<T>(), fieldName, start, end, not);
+        }
+
         #region Helpers
 
         private object GetExpressionValue(Expression expression)

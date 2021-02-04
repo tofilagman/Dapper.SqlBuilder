@@ -82,7 +82,7 @@ namespace Dapper.SqlBuilder.Builder
 
         public void QueryByIsIn(string tableName, string fieldName, SqlBuilderBase sqlQuery)
         {
-            var innerQuery = sqlQuery.CommandText;            
+            var innerQuery = sqlQuery.CommandText;
             foreach (var param in sqlQuery.CommandParameters)
             {
                 var innerParamKey = "Inner" + param.Key;
@@ -105,6 +105,20 @@ namespace Dapper.SqlBuilder.Builder
                                              });
 
             var newCondition = string.Format("{0} IN ({1})", Adapter.Field(tableName, fieldName), string.Join(",", paramIds));
+            WhereConditions.Add(newCondition);
+        }
+
+        public void QueryBetween<T>(string tableName, string fieldName, T start, T end, bool not)
+        {
+            var paramStart = NextParamId();
+            AddParameter(paramStart, start);
+            var pStart = Adapter.Parameter(paramStart);
+
+            var paramEnd = NextParamId();
+            AddParameter(paramEnd, end);
+            var pEnd = Adapter.Parameter(paramEnd);
+
+            var newCondition = $"({ Adapter.Field(tableName, fieldName) } { (not ? "NOT " : "") }BETWEEN { pStart } AND { pEnd })";
             WhereConditions.Add(newCondition);
         }
     }

@@ -12,6 +12,8 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests.Entities
         public string ResourcePath { get; set; }
         public UserTypeEnum UserType { get; set; }
 
+        public DateTime Date { get; set; }
+
         public int ID_Perm { get; set; }
     }
 

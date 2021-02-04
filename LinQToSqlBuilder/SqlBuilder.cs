@@ -253,6 +253,25 @@ namespace Dapper.SqlBuilder
             return this;
         }
 
+        public SqlBuilder<T> WhereBetween<T2>(Expression<Func<T, T2>> expression, T2 start, T2 end)
+        {
+            Builder.And();
+            Resolver.QueryBetween(expression, start, end, false);
+            return this;
+        }
+
+        public SqlBuilder<T> WhereNotBetween<T2>(Expression<Func<T, T2>> expression, T2 start, T2 end)
+        {
+            Builder.And();
+            Resolver.QueryBetween(expression, start, end, true);
+            return this;
+        }
+
+        public SqlBuilder<T> AndBetween<T2>(Expression<Func<T, T2>> expression, T2 start, T2 end) => WhereBetween(expression, start, end);
+
+        public SqlBuilder<T> AndNotBetween<T2>(Expression<Func<T, T2>> expression, T2 start, T2 end) => WhereNotBetween(expression, start, end);
+
+
         public SqlBuilder<T> OrderBy(Expression<Func<T, object>> expression)
         {
             Resolver.OrderBy(expression);
