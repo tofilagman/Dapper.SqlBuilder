@@ -79,5 +79,25 @@ namespace Dapper.SqlBuilder.Extensions
             return await con.QuerySingleAsync<long>(iden.CommandText, iden.CommandParameters, tran, timeOut);
         }
 
+        public static SqlMapper.GridReader QueryMultiple(this SqlBuilderCollection builderCollection, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        {
+            return con.QueryMultiple(builderCollection.CommandText, builderCollection.CommandParameters, tran, timeOut);
+        }
+
+        public static async Task<SqlMapper.GridReader> QueryMultipleAsync(this SqlBuilderCollection builderCollection, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        {
+            return await con.QueryMultipleAsync(builderCollection.CommandText, builderCollection.CommandParameters, tran, timeOut);
+        }
+
+        public static int Execute(this SqlBuilderCollection builderCollection, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        {
+            return con.Execute(builderCollection.CommandText, builderCollection.CommandParameters, tran, timeOut);
+        }
+
+        public static async Task<int> ExecuteAsync(this SqlBuilderCollection builderCollection, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        {
+            return await con.ExecuteAsync(builderCollection.CommandText, builderCollection.CommandParameters, tran, timeOut);
+        }
+
     }
 }
