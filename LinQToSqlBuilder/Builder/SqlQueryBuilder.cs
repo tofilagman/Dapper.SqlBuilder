@@ -120,7 +120,7 @@ namespace Dapper.SqlBuilder.Builder
             }
         }
 
-        internal SqlQueryBuilder(string tableName, ISqlAdapter adapter)
+        internal SqlQueryBuilder(string tableName, ISqlAdapter adapter, int paramCountIndex = 0)
         {
             if (adapter == null)
                 throw new InvalidOperationException("Set Adapter first, eg: SqlBuilder.SetAdapter(new SqlServerAdapter())");
@@ -128,7 +128,7 @@ namespace Dapper.SqlBuilder.Builder
             TableNames.Add(tableName);
             Adapter = adapter;
             Parameters = new ExpandoObject();
-            CurrentParamIndex = 0;
+            CurrentParamIndex = paramCountIndex;
         }
 
         #region helpers

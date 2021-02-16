@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Dapper.SqlBuilder;
 using Dapper.SqlBuilder.Adapter;
 using LinQToSqlBuilder.DataAccessLayer.Tests.Base;
@@ -235,7 +236,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
 
         [Test]
         public void WhereIsInLambdaList()
-        { 
+        {
             var permItem = SqlBuilder.Select<PermissionGroup>().WhereIsIn(x => x.ID_Perm, new List<int> { 1, 2, 4 });
 
             Assert.AreEqual(permItem.CommandText, "SELECT [permissiongroups].* FROM [permissiongroups] WHERE [permissiongroups].[ID_Perm] IN (@Param1,@Param2,@Param3)");
@@ -244,7 +245,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
 
         [Test]
         public void WhereIsInLambdaArray()
-        { 
+        {
             var permItem = SqlBuilder.Select<PermissionGroup>().WhereIsIn(x => x.ID_Perm, new int[] { 1, 2, 4 });
 
             Assert.AreEqual(permItem.CommandText, "SELECT [permissiongroups].* FROM [permissiongroups] WHERE [permissiongroups].[ID_Perm] IN (@Param1,@Param2,@Param3)");
@@ -263,7 +264,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                 new  PermissionGroup{ ID = 1, Name = "Test5" },
             };
 
-            var permItem = SqlBuilder.Select<PermissionGroup>().WhereIsIn(x => x.ID_Perm, perm.Select(x=> x.ID));
+            var permItem = SqlBuilder.Select<PermissionGroup>().WhereIsIn(x => x.ID_Perm, perm.Select(x => x.ID));
 
             Assert.AreEqual(permItem.CommandText, "SELECT [permissiongroups].* FROM [permissiongroups] WHERE [permissiongroups].[ID_Perm] IN (@Param1,@Param2,@Param3,@Param4,@Param5)");
             Assert.AreEqual(permItem.CommandParameters.Count, 5);
@@ -272,7 +273,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         [Test]
         public void WhereBetween()
         {
-            var perm = SqlBuilder.Select<PermissionGroup>().WhereBetween(x=> x.Date, DateTime.Now, DateTime.Now.AddDays(1));
+            var perm = SqlBuilder.Select<PermissionGroup>().WhereBetween(x => x.Date, DateTime.Now, DateTime.Now.AddDays(1));
             Assert.AreEqual(perm.CommandText, "SELECT [permissiongroups].* FROM [permissiongroups] WHERE ([permissiongroups].[Date] BETWEEN @Param1 AND @Param2)");
             Assert.AreEqual(perm.CommandParameters.Count, 2);
         }
@@ -280,7 +281,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         [Test]
         public void WhereBetweenAnd()
         {
-            var perm = SqlBuilder.Select<PermissionGroup>().Where(x=> x.Name == "Test").AndBetween(x => x.Date, DateTime.Now, DateTime.Now.AddDays(1));
+            var perm = SqlBuilder.Select<PermissionGroup>().Where(x => x.Name == "Test").AndBetween(x => x.Date, DateTime.Now, DateTime.Now.AddDays(1));
             Assert.AreEqual(perm.CommandText, "SELECT [permissiongroups].* FROM [permissiongroups] WHERE [permissiongroups].[Name] = @Param1 AND ([permissiongroups].[Date] BETWEEN @Param2 AND @Param3)");
             Assert.AreEqual(perm.CommandParameters.Count, 3);
         }
@@ -300,6 +301,36 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             var perm = SqlBuilder.Select<PermissionGroup>().Where(x => x.Name == "Test").AndBetween(x => x.Date, DateTime.Now, DateTime.Now.AddDays(1));
             Assert.AreEqual(perm.CommandText, "SELECT permissiongroups.* FROM permissiongroups WHERE permissiongroups.Name = @Param1 AND (permissiongroups.Date BETWEEN @Param2 AND @Param3)");
             Assert.AreEqual(perm.CommandParameters.Count, 3);
+        }
+
+        [Test]
+        public void MultipleQuery()
+        {
+            var qry = SqlBuilder
+                .From<PermissionGroup>(x => x.Where(y => y.ID == 2))
+                .From<UserGroup>(x => x.Where(y => y.IsDeleted == true));
+
+            var commandQry = new StringBuilder();
+            commandQry.AppendLine("SELECT [permissiongroups].* FROM [permissiongroups] WHERE [permissiongroups].[ID] = @Param1");
+            commandQry.Append("SELECT [UsersGroup].* FROM [UsersGroup] WHERE [UsersGroup].[IsDeleted] = @Param2");
+
+            Assert.AreEqual(commandQry.ToString(), qry.CommandText);
+            Assert.AreEqual(2, qry.CommandParameters.Count);
+        }
+
+        [Test]
+        public void MultipleQueryNoParam()
+        {
+            var qry = SqlBuilder
+                .From<PermissionGroup>()
+                .From<UserGroup>();
+
+            var commandQry = new StringBuilder();
+            commandQry.AppendLine("SELECT [permissiongroups].* FROM [permissiongroups]");
+            commandQry.Append("SELECT [UsersGroup].* FROM [UsersGroup]");
+
+            Assert.AreEqual(commandQry.ToString(), qry.CommandText);
+            Assert.AreEqual(0, qry.CommandParameters.Count);
         }
     }
 }

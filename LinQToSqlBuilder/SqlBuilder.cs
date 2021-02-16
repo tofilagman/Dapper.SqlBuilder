@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using Dapper.SqlBuilder.Adapter;
 using Dapper.SqlBuilder.Builder;
@@ -121,6 +122,16 @@ namespace Dapper.SqlBuilder
             return new SqlBuilder<T>().Select(expression);
         }
 
+        public static SqlBuilderCollection From<T>(Func<SqlBuilder<T>, SqlBuilder<T>> builder = null)
+        {
+            return new SqlBuilderCollection().From(builder);
+        }
+
+        public static SqlBuilderCollection From<T, TResult>(this SqlBuilderCollection builderCollection, SqlBuilder<T> builder)
+        {
+            return builderCollection.Add(builder);
+        }
+
         /// <summary>
         /// Prepares a select query to retrieve a single record of specified type <typeparamref name="T"/> satisfies given expression
         /// </summary>
@@ -185,9 +196,9 @@ namespace Dapper.SqlBuilder
     /// <typeparam name="T">The type of entity that associates to the table, used to perform the table and field name resolution</typeparam>
     public class SqlBuilder<T> : SqlBuilderBase
     {
-        public SqlBuilder()
+        public SqlBuilder(int paramCount = 0)
         {
-            Builder = new SqlQueryBuilder(LambdaResolver.GetTableName<T>(), DefaultAdapter);
+            Builder = new SqlQueryBuilder(LambdaResolver.GetTableName<T>(), DefaultAdapter, paramCount);
             Resolver = new LambdaResolver(Builder);
         }
 
@@ -432,6 +443,55 @@ namespace Dapper.SqlBuilder
         {
             Resolver.GroupBy(expression);
             return this;
+        }
+    }
+
+    public class SqlBuilderCollection
+    {
+        private readonly List<SqlBuilderBase> sqlBuilders;
+
+        public SqlBuilderCollection()
+        {
+            sqlBuilders = new List<SqlBuilderBase>();
+        }
+
+        public SqlBuilderCollection Add<T>(SqlBuilder<T> builder)
+        {
+            sqlBuilders.Add(builder);
+            return this;
+        }
+
+        public SqlBuilderCollection From<T>(Func<SqlBuilder<T>, SqlBuilder<T>> builder = null)
+        {
+            var fg = new SqlBuilder<T>(LastCount);
+            var nbd = builder?.Invoke(fg);
+            return this.Add(nbd ?? fg);
+        }
+
+        public string CommandText
+        {
+            get
+            {
+                return string.Join("\r\n", sqlBuilders.Select(x => x.CommandText));
+            }
+        }
+
+        public IDictionary<string, object> CommandParameters
+        {
+            get
+            {
+                return sqlBuilders.SelectMany(x => x.CommandParameters).ToDictionary(x => x.Key, x => x.Value);
+            }
+        }
+
+        private int LastCount
+        {
+            get
+            {
+                if (sqlBuilders.Count == 0)
+                    return 0;
+                return sqlBuilders.Max(x => x.SqlBuilder.CurrentParamIndex);
+            }
         }
     }
 }
