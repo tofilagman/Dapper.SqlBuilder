@@ -12,9 +12,9 @@ namespace Dapper.SqlBuilder.Adapter
         public string QueryString(string selection,
                                   string source,
                                   string conditions,
-                                  string order    = "",
+                                  string order = "",
                                   string grouping = "",
-                                  string having   = "")
+                                  string having = "")
         {
             return $"SELECT {selection} FROM {source} {conditions} {order} {grouping} {having}"
                .Trim();
@@ -34,8 +34,8 @@ namespace Dapper.SqlBuilder.Adapter
             return
                 $"INSERT INTO {target} ({string.Join(", ", fieldsToInsert)}) " +
                 (
-                    !string.IsNullOrEmpty(output) 
-                        ? $"OUTPUT Inserted.{output} " 
+                    !string.IsNullOrEmpty(output)
+                        ? $"OUTPUT Inserted.{output} "
                         : string.Empty
                 ) +
                 $"VALUES ({string.Join("), (", valuesToInsert)})"
@@ -55,7 +55,7 @@ namespace Dapper.SqlBuilder.Adapter
                 valuesToInsert.Add(string.Join(", ", rowValue.Select(_ => _.Value + " as " + _.Key)));
             }
 
-            return 
+            return
                 $"INSERT INTO {target} ({string.Join(", ", fieldsToInsert)}) " +
                 $"SELECT {string.Join(", ", valuesToInsert)} " +
                 $"FROM {source} " +
@@ -73,12 +73,14 @@ namespace Dapper.SqlBuilder.Adapter
 
         public string DeleteCommand(string source, string conditions)
         {
-            //if (string.IsNullOrEmpty(conditions))
-            //    throw new ArgumentNullException(nameof(conditions));
-
             return $"DELETE FROM {source} " +
                    $"{conditions}"
                .Trim();
+        }
+
+        public string WhereCommand(string conditions)
+        {
+            return $"{conditions}".Trim();
         }
     }
 }

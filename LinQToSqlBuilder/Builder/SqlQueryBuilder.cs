@@ -53,7 +53,7 @@ namespace Dapper.SqlBuilder.Builder
 
         private int _pageIndex;
 
-        public int CurrentParamIndex { get; private set; }
+        public int CurrentParamIndex { get; set; }
 
         private string Source
         {
@@ -120,6 +120,20 @@ namespace Dapper.SqlBuilder.Builder
             }
         }
 
+        public string WhereCommandText
+        {
+            get
+            {
+                switch (Operation)
+                {
+                    case SqlOperations.Query:
+                        return GenerateWhereCommand();
+                    default:
+                        throw new Exception("Invalid Command Operation");
+                }
+            }
+        }
+
         internal SqlQueryBuilder(string tableName, ISqlAdapter adapter, int paramCountIndex = 0)
         {
             if (adapter == null)
@@ -140,7 +154,7 @@ namespace Dapper.SqlBuilder.Builder
 
         private void AddParameter(string key, object value)
         {
-            if(!Parameters.ContainsKey(key))
+            if (!Parameters.ContainsKey(key))
                 Parameters.Add(key, value);
         }
         #endregion

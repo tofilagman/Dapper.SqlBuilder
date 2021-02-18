@@ -11,20 +11,21 @@ namespace Dapper.SqlBuilder.Resolver
     partial class LambdaResolver
     {
         public void Join<T1, T2>(Expression<Func<T1, T2, bool>> expression, JoinType joinType)
-        {
-            var joinExpression = GetBinaryExpression(expression.Body);
-            var leftExpression = GetMemberExpression(joinExpression.Left);
-            var rightExpression = GetMemberExpression(joinExpression.Right);
-
-            Join<T1, T2>(leftExpression, rightExpression, joinType);
+        { 
+            var rebuilder = new SqlJoinBuilder<T1, T2>(Builder.CurrentParamIndex).Build(expression);
+            foreach (var p in rebuilder.CommandParameters)
+                Builder.Parameters.Add(p);
+            Builder.CurrentParamIndex = rebuilder.Builder.CurrentParamIndex; 
+            Builder.Join(GetTableName<T2>(), rebuilder.Builder.WhereCommandText, joinType); 
         }
 
+        [Obsolete]
         public void Join<T1, T2, TKey>(Expression<Func<T1, TKey>> leftExpression, Expression<Func<T1, TKey>> rightExpression, JoinType joinType)
         {
             Join<T1, T2>(GetMemberExpression(leftExpression.Body), GetMemberExpression(rightExpression.Body), joinType);
         }
- 
 
+        [Obsolete]
         public void Join<T1, T2>(MemberExpression leftExpression, MemberExpression rightExpression, JoinType joinType)
         {
             Builder.Join(GetTableName<T1>(), GetTableName<T2>(), GetColumnName(leftExpression), GetColumnName(rightExpression), joinType);

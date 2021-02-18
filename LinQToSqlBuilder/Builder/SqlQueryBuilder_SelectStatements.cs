@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Dapper.SqlBuilder.Adapter;
 using Dapper.SqlBuilder.ValueObjects;
 
@@ -9,6 +10,7 @@ namespace Dapper.SqlBuilder.Builder
     /// </summary>
     internal partial class SqlQueryBuilder
     {
+        [Obsolete]
         public void Join(string originalTableName, string joinTableName, string leftField, string rightField, JoinType joinType)
         {
             var join = GetJoinExpression(joinType);
@@ -19,6 +21,17 @@ namespace Dapper.SqlBuilder.Builder
             TableNames.Add(joinTableName);
             JoinExpressions.Add(joinString);
             SplitColumns.Add(rightField);
+        }
+
+        public void Join(string joinTableName, string commandText, JoinType joinType)
+        {
+            var join = GetJoinExpression(joinType);
+            var joinString =
+                $"{join} {Adapter.Table(joinTableName)} " +
+                $"ON {commandText}";
+
+            TableNames.Add(joinTableName);
+            JoinExpressions.Add(joinString); 
         }
 
         private string GetJoinExpression(JoinType joinType)
@@ -102,6 +115,12 @@ namespace Dapper.SqlBuilder.Builder
                 throw new Exception("Pagination requires the ORDER BY statement to be specified");
 
             return Adapter.QueryStringPage(Source, Selection, Conditions, Order, _pageSize.Value, _pageIndex);
+        }
+
+        private string GenerateWhereCommand()
+        {
+            var fields = WhereConditions.Count == 0 ? "" : string.Join("", WhereConditions);
+            return Adapter.WhereCommand(fields);
         }
     }
 }

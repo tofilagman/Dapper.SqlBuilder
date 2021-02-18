@@ -468,7 +468,7 @@ namespace Dapper.SqlBuilder
         public SqlBuilder<T2> FullOuterJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.FullOuterJoin);
         public SqlBuilder<T2> CrossJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.CrossJoin);
         public SqlBuilder<T2> CrossJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.CrossJoin);
-         
+
         public SqlBuilder<T> GroupBy(Expression<Func<T, object>> expression)
         {
             Resolver.GroupBy(expression);
@@ -523,5 +523,20 @@ namespace Dapper.SqlBuilder
                 return sqlBuilders.Max(x => x.SqlBuilder.CurrentParamIndex);
             }
         }
+    }
+
+    class SqlJoinBuilder<T1, T2> : SqlBuilderBase
+    {
+        public SqlJoinBuilder(int paramCount = 0)
+        {
+            Builder = new SqlQueryBuilder(LambdaResolver.GetTableName<T2>(), DefaultAdapter, paramCount);
+            Resolver = new LambdaResolver(Builder);
+        }
+
+        public SqlJoinBuilder<T1, T2> Build(Expression<Func<T1, T2, bool>> expression)
+        { 
+            Resolver.ResolveQuery(expression);
+            return this;
+        } 
     }
 }

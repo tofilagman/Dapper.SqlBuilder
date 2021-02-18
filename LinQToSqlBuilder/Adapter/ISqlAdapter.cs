@@ -29,6 +29,8 @@ namespace Dapper.SqlBuilder.Adapter
         string Field(string tableName, string fieldName);
 
         string Parameter(string parameterId);
+
+        string WhereCommand(string conditions);
     }
 
     enum SqlOperations

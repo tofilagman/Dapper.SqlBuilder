@@ -19,6 +19,12 @@ namespace Dapper.SqlBuilder.Resolver
             BuildSql(expressionTree);
         }
 
+        public void ResolveQuery<T, T2>(Expression<Func<T, T2, bool>> expression)
+        {
+            var expressionTree = ResolveQuery((dynamic)expression.Body);
+            BuildSql(expressionTree);
+        }
+
         private Node ResolveQuery(ConstantExpression constantExpression)
         {
             return new ValueNode { Value = constantExpression.Value };
