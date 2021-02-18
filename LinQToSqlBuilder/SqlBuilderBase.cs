@@ -34,8 +34,7 @@ namespace Dapper.SqlBuilder
         public static void SetAdapter(ISqlAdapter adapter)
         {
             DefaultAdapter =  adapter ?? new SqlServerAdapter();
-        }
-
-         
+        } 
     }
+     
 }

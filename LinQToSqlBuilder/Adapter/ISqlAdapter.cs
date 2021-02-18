@@ -39,4 +39,16 @@ namespace Dapper.SqlBuilder.Adapter
         Update,
         Delete
     }
+
+    enum JoinType
+    {
+        InnerJoin,
+        LeftJoin,
+        LeftOuterJoin,
+        RightJoin,
+        RightOuterJoin,
+        FullJoin,
+        FullOuterJoin,
+        CrossJoin
+    }
 }

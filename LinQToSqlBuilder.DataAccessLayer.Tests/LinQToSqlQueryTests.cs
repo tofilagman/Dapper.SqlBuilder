@@ -140,28 +140,28 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             var email = $"someemail@domain.com";
             var groupId = 3;
             var query = SqlBuilder.Select<User>()
-                                  .Join<UserUserGroup>((@user, @group) => user.Id == group.UserId)
-                                  .Join<UserGroup>((group, g) => group.UserGroupId == g.Id)
+                                  .InnerJoin<UserUserGroup>((@user, @group) => user.Id == group.UserId)
+                                  .InnerJoin<UserGroup>((group, g) => group.UserGroupId == g.Id)
                                   .Where(group => group.Id == groupId);
 
             Assert.AreEqual("SELECT [Users].*, [UsersUserGroup].*, [UsersGroup].* " +
                             "FROM [Users] " +
-                            "JOIN [UsersUserGroup] ON [Users].[Id] = [UsersUserGroup].[UserId] " +
-                            "JOIN [UsersGroup] ON [UsersUserGroup].[UserGroupId] = [UsersGroup].[Id] " +
+                            "INNER JOIN [UsersUserGroup] ON [Users].[Id] = [UsersUserGroup].[UserId] " +
+                            "INNER JOIN [UsersGroup] ON [UsersUserGroup].[UserGroupId] = [UsersGroup].[Id] " +
                             "WHERE [UsersGroup].[Id] = @Param1",
                             query.CommandText);
 
 
             var query2 = SqlBuilder.Select<User>()
                                    .Where(user => user.Email == email)
-                                   .Join<UserUserGroup>((@user, @group) => user.Id == group.UserId)
-                                   .Join<UserGroup>((group, g) => group.UserGroupId == g.Id)
+                                   .InnerJoin<UserUserGroup>((@user, @group) => user.Id == group.UserId)
+                                   .InnerJoin<UserGroup>((group, g) => group.UserGroupId == g.Id)
                                    .Where(group => group.Id == groupId);
 
             Assert.AreEqual("SELECT [Users].*, [UsersUserGroup].*, [UsersGroup].* " +
                             "FROM [Users] " +
-                            "JOIN [UsersUserGroup] ON [Users].[Id] = [UsersUserGroup].[UserId] " +
-                            "JOIN [UsersGroup] ON [UsersUserGroup].[UserGroupId] = [UsersGroup].[Id] " +
+                            "INNER JOIN [UsersUserGroup] ON [Users].[Id] = [UsersUserGroup].[UserId] " +
+                            "INNER JOIN [UsersGroup] ON [UsersUserGroup].[UserGroupId] = [UsersGroup].[Id] " +
                             "WHERE [Users].[Email] = @Param1 " +
                             "AND [UsersGroup].[Id] = @Param2",
                             query2.CommandText);
@@ -331,6 +331,45 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
 
             Assert.AreEqual(commandQry.ToString(), qry.CommandText);
             Assert.AreEqual(0, qry.CommandParameters.Count);
+        }
+
+        [Test]
+        public void Join()
+        {
+            var qry = SqlBuilder
+                .Select<UserGroup>(x => x.IsUndeletable).Where(x => x.Id == 3 || x.IsDeleted)
+                .LeftJoin<UserUserGroup>((x, y) => x.Id == y.UserGroupId, x => x.UserId)
+                .LeftJoin<User>((x, y) => x.UserId == y.Id, x => new { x.Email, x.FirstName }).Where(x => x.Id == 2);
+            Assert.IsNotNull(qry.CommandText);
+
+            var cmd = "SELECT [UsersGroup].[IsUndeletable], [UsersUserGroup].[UserId], [Users].[Email], [Users].[FirstName] ";
+            cmd += "FROM [UsersGroup] ";
+            cmd += "LEFT JOIN [UsersUserGroup] ON [UsersGroup].[Id] = [UsersUserGroup].[UserGroupId] ";
+            cmd += "LEFT JOIN [Users] ON [UsersUserGroup].[UserId] = [Users].[Id] ";
+            cmd += "WHERE ([UsersGroup].[Id] = @Param1 OR [UsersGroup].[IsDeleted] = @Param2) AND [Users].[Id] = @Param3";
+
+
+            Assert.AreEqual(cmd, qry.CommandText);
+            Assert.AreEqual(3, qry.CommandParameters.Count);
+        }
+
+        [Test]
+        public void JoinMultipleOn()
+        {
+            var qry = SqlBuilder
+                .Select<UserGroup>(x => x.IsUndeletable).Where(x => x.Id == 3 || x.IsDeleted) 
+                .LeftJoin<User>((x, y) => x.Id == y.Id && y.FirstName == "Jose", x => new { x.Email, x.FirstName }).Where(x => x.Id == 2);
+            Assert.IsNotNull(qry.CommandText);
+
+            var cmd = "SELECT [UsersGroup].[IsUndeletable], [UsersUserGroup].[UserId], [Users].[Email], [Users].[FirstName] ";
+            cmd += "FROM [UsersGroup] ";
+            cmd += "LEFT JOIN [UsersUserGroup] ON [UsersGroup].[Id] = [UsersUserGroup].[UserGroupId] ";
+            cmd += "LEFT JOIN [Users] ON [UsersUserGroup].[UserId] = [Users].[Id] ";
+            cmd += "WHERE ([UsersGroup].[Id] = @Param1 OR [UsersGroup].[IsDeleted] = @Param2) AND [Users].[Id] = @Param3";
+
+
+            Assert.AreEqual(cmd, qry.CommandText);
+            Assert.AreEqual(3, qry.CommandParameters.Count);
         }
     }
 }

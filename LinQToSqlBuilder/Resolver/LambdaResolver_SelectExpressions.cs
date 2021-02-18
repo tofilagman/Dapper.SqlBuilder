@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
+using Dapper.SqlBuilder.Adapter;
 using Dapper.SqlBuilder.ValueObjects;
 
 namespace Dapper.SqlBuilder.Resolver
@@ -9,23 +10,24 @@ namespace Dapper.SqlBuilder.Resolver
     /// </summary>
     partial class LambdaResolver
     {
-        public void Join<T1, T2>(Expression<Func<T1, T2, bool>> expression)
+        public void Join<T1, T2>(Expression<Func<T1, T2, bool>> expression, JoinType joinType)
         {
             var joinExpression = GetBinaryExpression(expression.Body);
             var leftExpression = GetMemberExpression(joinExpression.Left);
             var rightExpression = GetMemberExpression(joinExpression.Right);
 
-            Join<T1, T2>(leftExpression, rightExpression);
+            Join<T1, T2>(leftExpression, rightExpression, joinType);
         }
 
-        public void Join<T1, T2, TKey>(Expression<Func<T1, TKey>> leftExpression, Expression<Func<T1, TKey>> rightExpression)
+        public void Join<T1, T2, TKey>(Expression<Func<T1, TKey>> leftExpression, Expression<Func<T1, TKey>> rightExpression, JoinType joinType)
         {
-            Join<T1, T2>(GetMemberExpression(leftExpression.Body), GetMemberExpression(rightExpression.Body));
+            Join<T1, T2>(GetMemberExpression(leftExpression.Body), GetMemberExpression(rightExpression.Body), joinType);
         }
+ 
 
-        public void Join<T1, T2>(MemberExpression leftExpression, MemberExpression rightExpression)
+        public void Join<T1, T2>(MemberExpression leftExpression, MemberExpression rightExpression, JoinType joinType)
         {
-            Builder.Join(GetTableName<T1>(), GetTableName<T2>(), GetColumnName(leftExpression), GetColumnName(rightExpression));
+            Builder.Join(GetTableName<T1>(), GetTableName<T2>(), GetColumnName(leftExpression), GetColumnName(rightExpression), joinType);
         }
 
         public void OrderBy<T>(Expression<Func<T, object>> expression, bool desc = false)
@@ -33,12 +35,12 @@ namespace Dapper.SqlBuilder.Resolver
             var fieldName = GetColumnName(GetMemberExpression(expression.Body));
             Builder.OrderBy(GetTableName<T>(), fieldName, desc);
         }
-        
+
         public void Select<T>(Expression<Func<T, object>> expression)
         {
             Select<T>(expression.Body);
         }
-        
+
         public void Select<T, TResult>(Expression<Func<T, TResult>> expression)
         {
             Select<T>(expression.Body);
@@ -75,15 +77,15 @@ namespace Dapper.SqlBuilder.Resolver
                     throw new ArgumentException("Invalid expression");
                 default:
                     throw new ArgumentException("Invalid expression");
-            }           
+            }
         }
 
         private void Select<T>(MemberExpression expression)
         {
             if (expression.Type.IsClass && expression.Type != typeof(String))
-                Builder.Select(GetTableName(expression.Type));                            
+                Builder.Select(GetTableName(expression.Type));
             else
-                Builder.Select(GetTableName<T>(), GetColumnName(expression));            
+                Builder.Select(GetTableName<T>(), GetColumnName(expression));
         }
 
         public void SelectWithFunction<T>(Expression<Func<T, object>> expression, SelectFunction selectFunction)

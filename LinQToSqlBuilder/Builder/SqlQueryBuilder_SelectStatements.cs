@@ -1,4 +1,5 @@
 ﻿using System;
+using Dapper.SqlBuilder.Adapter;
 using Dapper.SqlBuilder.ValueObjects;
 
 namespace Dapper.SqlBuilder.Builder
@@ -8,15 +9,41 @@ namespace Dapper.SqlBuilder.Builder
     /// </summary>
     internal partial class SqlQueryBuilder
     {
-        public void Join(string originalTableName, string joinTableName, string leftField, string rightField)
+        public void Join(string originalTableName, string joinTableName, string leftField, string rightField, JoinType joinType)
         {
+            var join = GetJoinExpression(joinType);
             var joinString =
-                $"JOIN {Adapter.Table(joinTableName)} "+
+                $"{join} {Adapter.Table(joinTableName)} " +
                 $"ON {Adapter.Field(originalTableName, leftField)} = {Adapter.Field(joinTableName, rightField)}";
 
             TableNames.Add(joinTableName);
             JoinExpressions.Add(joinString);
             SplitColumns.Add(rightField);
+        }
+
+        private string GetJoinExpression(JoinType joinType)
+        {
+            switch (joinType)
+            {
+                case JoinType.LeftJoin:
+                    return "LEFT JOIN";
+                case JoinType.LeftOuterJoin:
+                    return "LEFT OUTER JOIN";
+                case JoinType.FullJoin:
+                    return "FULL JOIN";
+                case JoinType.FullOuterJoin:
+                    return "FULL OUTER JOIN";
+                case JoinType.RightJoin:
+                    return "RIGHT JOIN";
+                case JoinType.RightOuterJoin:
+                    return "RIGHT OUTER JOIN";
+                case JoinType.InnerJoin:
+                    return "INNER JOIN";
+                case JoinType.CrossJoin:
+                    return "CROSS JOIN";
+                default:
+                    return "JOIN";
+            }
         }
 
         public void OrderBy(string tableName, string fieldName, bool desc = false)
@@ -25,7 +52,7 @@ namespace Dapper.SqlBuilder.Builder
             if (desc)
                 order += " DESC";
 
-            OrderByList.Add(order);            
+            OrderByList.Add(order);
         }
 
         public void Select(string tableName)

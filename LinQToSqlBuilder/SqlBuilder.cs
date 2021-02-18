@@ -117,7 +117,12 @@ namespace Dapper.SqlBuilder
         /// <typeparam name="TResult"></typeparam>
         /// <param name="expression">The expression that describes which fields of the <typeparamref name="T"/> to return</param>
         /// <returns>The instance of <see cref="SqlBuilder{T}"/> for chaining calls</returns>
-        public static SqlBuilder<T> Select<T, TResult>(Expression<Func<T, TResult>> expression)
+        public static SqlBuilder<T> Select<T, TResult>(Expression<Func<T, TResult>> expression = null)
+        {
+            return new SqlBuilder<T>().Select(expression);
+        }
+
+        public static SqlBuilder<T> Select<T, TResult>(string @as, Expression<Func<T, TResult>> expression = null)
         {
             return new SqlBuilder<T>().Select(expression);
         }
@@ -422,23 +427,48 @@ namespace Dapper.SqlBuilder
             return this;
         }
 
-        public SqlBuilder<TResult> Join<T2, TKey, TResult>(SqlBuilder<T2> joinQuery,
-            Expression<Func<T, TKey>> primaryKeySelector,
-            Expression<Func<T, TKey>> foreignKeySelector,
-            Func<T, T2, TResult> selection)
-        {
-            var query = new SqlBuilder<TResult>(Builder, Resolver);
-            Resolver.Join<T, T2, TKey>(primaryKeySelector, foreignKeySelector);
-            return query;
-        }
+        //[Obsolete("Bug")]
+        //public SqlBuilder<TResult> Join<T2, TKey, TResult>(SqlBuilder<T2> joinQuery,
+        //    Expression<Func<T, TKey>> primaryKeySelector,
+        //    Expression<Func<T, TKey>> foreignKeySelector,
+        //    Func<T, T2, TResult> selection)
+        //{
+        //    var query = new SqlBuilder<TResult>(Builder, Resolver);
+        //    Resolver.Join<T, T2, TKey>(primaryKeySelector, foreignKeySelector);
+        //    return query;
+        //}
 
-        public SqlBuilder<T2> Join<T2>(Expression<Func<T, T2, bool>> expression)
+        private SqlBuilder<T2> Join<T2>(Expression<Func<T, T2, bool>> expression, JoinType joinType)
         {
             var joinQuery = new SqlBuilder<T2>(Builder, Resolver);
-            Resolver.Join(expression);
+            Resolver.Join(expression, joinType);
             return joinQuery;
         }
 
+        private SqlBuilder<T2> Join<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns, JoinType joinType)
+        {
+            var joinQuery = new SqlBuilder<T2>(Builder, Resolver).Select(columns);
+            Resolver.Join(expression, joinType);
+            return joinQuery;
+        }
+
+        public SqlBuilder<T2> InnerJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.InnerJoin);
+        public SqlBuilder<T2> InnerJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.InnerJoin);
+        public SqlBuilder<T2> LeftJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.LeftJoin);
+        public SqlBuilder<T2> LeftJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.LeftJoin);
+        public SqlBuilder<T2> LeftOuterJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.LeftOuterJoin);
+        public SqlBuilder<T2> LeftOuterJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.LeftOuterJoin);
+        public SqlBuilder<T2> RightJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.RightJoin);
+        public SqlBuilder<T2> RightJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.RightJoin);
+        public SqlBuilder<T2> RightOuterJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.RightOuterJoin);
+        public SqlBuilder<T2> RightOuterJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.RightOuterJoin);
+        public SqlBuilder<T2> FullJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.FullJoin);
+        public SqlBuilder<T2> FullJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.FullJoin);
+        public SqlBuilder<T2> FullOuterJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.FullOuterJoin);
+        public SqlBuilder<T2> FullOuterJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.FullOuterJoin);
+        public SqlBuilder<T2> CrossJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.CrossJoin);
+        public SqlBuilder<T2> CrossJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.CrossJoin);
+         
         public SqlBuilder<T> GroupBy(Expression<Func<T, object>> expression)
         {
             Resolver.GroupBy(expression);
