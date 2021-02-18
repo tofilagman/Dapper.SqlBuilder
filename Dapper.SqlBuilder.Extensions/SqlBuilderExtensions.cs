@@ -20,37 +20,47 @@ namespace Dapper.SqlBuilder.Extensions
             return await con.QuerySingleAsync<int>(cntSQL.CommandText, transaction: tran);
         }
 
-        public static IEnumerable<T> Query<T>(this SqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, bool buffered = true, int? timeOut = null)
+        public static IEnumerable<T> Query<T>(this ISqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, bool buffered = true, int? timeOut = null)
         {
             return con.Query<T>(sqlBuilder.CommandText, sqlBuilder.CommandParameters, tran, buffered, timeOut);
         }
 
-        public static async Task<IEnumerable<T>> QueryAsync<T>(this SqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        public static async Task<IEnumerable<T>> QueryAsync<T>(this ISqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
         {
             return await con.QueryAsync<T>(sqlBuilder.CommandText, sqlBuilder.CommandParameters, tran, timeOut);
         }
 
-        public static async Task<T> QuerySingleAsync<T>(this SqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        public static async Task<T> QuerySingleAsync<T>(this ISqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
         {
             return await con.QuerySingleAsync<T>(sqlBuilder.CommandText, sqlBuilder.CommandParameters, tran, timeOut);
         }
 
-        public static T QuerySingleOrDefault<T>(this SqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        public static T QuerySingleOrDefault<T>(this ISqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
         {
             return con.QuerySingleOrDefault<T>(sqlBuilder.CommandText, sqlBuilder.CommandParameters, tran, timeOut);
         }
 
-        public static async Task<T> QuerySingleOrDefaultAsync<T>(this SqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        public static async Task<T> QuerySingleOrDefaultAsync<T>(this ISqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
         {
             return await con.QuerySingleOrDefaultAsync<T>(sqlBuilder.CommandText, sqlBuilder.CommandParameters, tran, timeOut);
         }
 
-        public static int Execute<T>(this SqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        public static T QueryFirstOrDefault<T>(this ISqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        {
+            return con.QueryFirstOrDefault<T>(sqlBuilder.CommandText, sqlBuilder.CommandParameters, tran, timeOut);
+        }
+
+        public static async Task<T> QueryFirstOrDefaultAsync<T>(this ISqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        {
+            return await con.QueryFirstOrDefaultAsync<T>(sqlBuilder.CommandText, sqlBuilder.CommandParameters, tran, timeOut);
+        }
+
+        public static int Execute<T>(this ISqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
         {
             return con.Execute(sqlBuilder.CommandText, sqlBuilder.CommandParameters, tran, timeOut);
         }
 
-        public static async Task<int> ExecuteAsync<T>(this SqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        public static async Task<int> ExecuteAsync<T>(this ISqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
         {
             return await con.ExecuteAsync(sqlBuilder.CommandText, sqlBuilder.CommandParameters, tran, timeOut);
         }
