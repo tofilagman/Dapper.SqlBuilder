@@ -24,5 +24,10 @@
         {
             return "@" + parameterId;
         }
+
+        public string Alias(string alias)
+        {
+            return $"[{alias}]";
+        }
     }
 }

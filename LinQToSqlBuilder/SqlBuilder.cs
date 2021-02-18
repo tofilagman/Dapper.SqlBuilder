@@ -199,7 +199,7 @@ namespace Dapper.SqlBuilder
     /// Represents the service that will generate SQL commands from given lambda expression
     /// </summary>
     /// <typeparam name="T">The type of entity that associates to the table, used to perform the table and field name resolution</typeparam>
-    public class SqlBuilder<T> : SqlBuilderBase
+    public partial class SqlBuilder<T> : SqlBuilderBase, ISqlBuilder<T>
     {
         public SqlBuilder(int paramCount = 0)
         {
@@ -328,7 +328,6 @@ namespace Dapper.SqlBuilder
         public SqlBuilder<T> Select<TResult>(Expression<Func<T, TResult>> expression)
         {
             Resolver.Select(expression);
-
             return this;
         }
 
@@ -476,6 +475,12 @@ namespace Dapper.SqlBuilder
         }
     }
 
+    public interface ISqlBuilder<T>
+    {
+        string CommandText { get; }
+        IDictionary<string, object> CommandParameters { get; }
+    }
+
     public class SqlBuilderCollection
     {
         private readonly List<SqlBuilderBase> sqlBuilders;
@@ -534,9 +539,9 @@ namespace Dapper.SqlBuilder
         }
 
         public SqlJoinBuilder<T1, T2> Build(Expression<Func<T1, T2, bool>> expression)
-        { 
+        {
             Resolver.ResolveQuery(expression);
             return this;
-        } 
+        }
     }
 }

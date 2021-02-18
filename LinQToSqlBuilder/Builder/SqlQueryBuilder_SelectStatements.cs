@@ -31,7 +31,7 @@ namespace Dapper.SqlBuilder.Builder
                 $"ON {commandText}";
 
             TableNames.Add(joinTableName);
-            JoinExpressions.Add(joinString); 
+            JoinExpressions.Add(joinString);
         }
 
         private string GetJoinExpression(JoinType joinType)
@@ -79,10 +79,29 @@ namespace Dapper.SqlBuilder.Builder
             SelectionList.Add(Adapter.Field(tableName, fieldName));
         }
 
+        public void Select(string tablename, string fieldName, string alias)
+        {
+            if (string.IsNullOrEmpty(alias) || fieldName == alias)
+                Select(tablename, fieldName);
+            else
+                SelectionList.Add($"{ Adapter.Field(tablename, fieldName)} { Adapter.Alias(alias) }");
+        }
+
         public void Select(string tableName, string fieldName, SelectFunction selectFunction)
         {
             var selectionString = $"{selectFunction}({Adapter.Field(tableName, fieldName)})";
             SelectionList.Add(selectionString);
+        }
+
+        public void Select(string tableName, string fieldName, string alias, SelectFunction selectFunction)
+        {
+            if (string.IsNullOrEmpty(alias) || fieldName == alias)
+                Select(tableName, fieldName, selectFunction);
+            else
+            {
+                var selectionString = $"{selectFunction}({Adapter.Field(tableName, fieldName)}) {Adapter.Alias(alias)}";
+                SelectionList.Add(selectionString);
+            }
         }
 
         public void Select(SelectFunction selectFunction)

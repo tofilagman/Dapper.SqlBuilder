@@ -11,12 +11,12 @@ namespace Dapper.SqlBuilder.Resolver
     partial class LambdaResolver
     {
         public void Join<T1, T2>(Expression<Func<T1, T2, bool>> expression, JoinType joinType)
-        { 
+        {
             var rebuilder = new SqlJoinBuilder<T1, T2>(Builder.CurrentParamIndex).Build(expression);
             foreach (var p in rebuilder.CommandParameters)
                 Builder.Parameters.Add(p);
-            Builder.CurrentParamIndex = rebuilder.Builder.CurrentParamIndex; 
-            Builder.Join(GetTableName<T2>(), rebuilder.Builder.WhereCommandText, joinType); 
+            Builder.CurrentParamIndex = rebuilder.Builder.CurrentParamIndex;
+            Builder.Join(GetTableName<T2>(), rebuilder.Builder.WhereCommandText, joinType);
         }
 
         [Obsolete]
@@ -69,7 +69,7 @@ namespace Dapper.SqlBuilder.Resolver
                         {
                             if (memberExp is MemberAssignment assignmentExpression)
                             {
-                                Select<T>(assignmentExpression.Expression);
+                                Select<T>(assignmentExpression);
                             }
                         }
                         break;
@@ -81,12 +81,34 @@ namespace Dapper.SqlBuilder.Resolver
             }
         }
 
-        private void Select<T>(MemberExpression expression)
+        private void Select<T>(MemberExpression expression, string alias = null)
         {
             if (expression.Type.IsClass && expression.Type != typeof(String))
                 Builder.Select(GetTableName(expression.Type));
+            else if (expression?.Expression.Type.IsClass == true)
+                Builder.Select(GetTableName(expression.Expression.Type), GetColumnName(expression), alias);
             else
-                Builder.Select(GetTableName<T>(), GetColumnName(expression));
+                Builder.Select(GetTableName<T>(), GetColumnName(expression), alias);
+        }
+
+        private void Select<T>(MemberAssignment member)
+        {
+            var exp = member.Expression;
+            var alias = GetColumnName(member.Member);
+
+            if (member.Expression is MemberExpression memberExpression)
+            {
+                Select<T>(memberExpression, alias);
+            }
+            else
+            {
+                var column = GetColumnName(exp);
+
+                if (exp.Type.IsClass && exp.Type != typeof(String))
+                    Builder.Select(GetTableName(member.Expression.Type));
+                else
+                    Builder.Select(GetTableName<T>(), column, alias);
+            }
         }
 
         public void SelectWithFunction<T>(Expression<Func<T, object>> expression, SelectFunction selectFunction)

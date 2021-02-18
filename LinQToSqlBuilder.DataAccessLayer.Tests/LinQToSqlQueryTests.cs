@@ -357,7 +357,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         public void JoinMultipleOn()
         {
             var qry = SqlBuilder
-                .Select<UserGroup>(x => x.IsUndeletable).Where(x => x.Id == 3 || x.IsDeleted) 
+                .Select<UserGroup>(x => x.IsUndeletable).Where(x => x.Id == 3 || x.IsDeleted)
                 .LeftJoin<User>((x, y) => x.Id == y.Id && y.FirstName == "Jose", x => new { x.Email, x.FirstName }).Where(x => x.Id == 2);
             Assert.IsNotNull(qry.CommandText);
 
@@ -365,7 +365,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             cmd += "FROM [UsersGroup] ";
             cmd += "LEFT JOIN [Users] ON ([UsersGroup].[Id] = [Users].[Id] AND [Users].[FirstName] = @Param3) ";
             cmd += "WHERE ([UsersGroup].[Id] = @Param1 OR [UsersGroup].[IsDeleted] = @Param2) AND [Users].[Id] = @Param4";
-             
+
             Assert.AreEqual(cmd, qry.CommandText);
             Assert.AreEqual(4, qry.CommandParameters.Count);
         }
@@ -381,7 +381,25 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             var cmd = "SELECT [Users].* FROM [UsersGroup] ";
             cmd += "LEFT JOIN [Users] ON ([UsersGroup].[Id] = [Users].[Id] AND [Users].[FirstName] = @Param3) ";
             cmd += "WHERE ([UsersGroup].[Id] = @Param1 OR [UsersGroup].[IsDeleted] = @Param2)";
-          
+
+            Assert.AreEqual(cmd, qry.CommandText);
+            Assert.AreEqual(3, qry.CommandParameters.Count);
+        }
+
+        [Test]
+        public void Result()
+        {
+            var qry = SqlBuilder
+                .Select<UserGroup>().Where(x => x.Id == 3 || x.IsDeleted)
+                .LeftJoin<User>((x, y) => x.Id == y.Id && y.FirstName == "Jose")
+                .Result<PermissionGroup, UserGroup>((x, y) => new UserGroup { Id = x.Id, Name = y.ResourcePath });
+
+            Assert.IsNotNull(qry.CommandText);
+
+            var cmd = "SELECT [Users].[Id], [permissiongroups].[ResourcePath] [Name] FROM [UsersGroup] ";
+            cmd += "LEFT JOIN [Users] ON ([UsersGroup].[Id] = [Users].[Id] AND [Users].[FirstName] = @Param3) ";
+            cmd += "WHERE ([UsersGroup].[Id] = @Param1 OR [UsersGroup].[IsDeleted] = @Param2)";
+
             Assert.AreEqual(cmd, qry.CommandText);
             Assert.AreEqual(3, qry.CommandParameters.Count);
         }

@@ -57,5 +57,10 @@ namespace Dapper.SqlBuilder.Adapter
                 )
                    .Trim();
         }
+
+        public string Alias(string alias)
+        {
+            return alias;
+        }
     }
 }

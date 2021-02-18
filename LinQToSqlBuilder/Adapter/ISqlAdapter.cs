@@ -31,6 +31,8 @@ namespace Dapper.SqlBuilder.Adapter
         string Parameter(string parameterId);
 
         string WhereCommand(string conditions);
+
+        string Alias(string alias);
     }
 
     enum SqlOperations
