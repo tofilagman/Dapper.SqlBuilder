@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.78" />
+    <PackageReference Include="Dapper.SqlBuilder.Unofficial" Version="1.0.14" />
     <PackageReference Include="microsoft.bcl.asyncinterfaces" Version="5.0.0" />
     <PackageReference Include="z.Data.Standard" Version="1.2.14" />
   </ItemGroup>
