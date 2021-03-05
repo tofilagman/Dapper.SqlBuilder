@@ -156,7 +156,7 @@ namespace Dapper.SqlBuilder.Resolver
                     {
                         return (int)Enum.Parse(expression.Type, conVal.ToString());
                     }
-                     
+
                     return conVal;
                 case ExpressionType.Call:
                     return ResolveMethodCall(expression as MethodCallExpression);
@@ -181,6 +181,15 @@ namespace Dapper.SqlBuilder.Resolver
                     var expressionType = expression.GetType();
                     throw new
                         ArgumentException($"Expected some expression as {nameof(UnaryExpression)} but received {expressionType.FullName}");
+                case ExpressionType.Not:
+                    if (expression is UnaryExpression notExpression)
+                        if (bool.TryParse(GetExpressionValue(notExpression.Operand).ToString(), out var boolValue))
+                        {
+                            return !boolValue;
+                        }
+                    var notExpressionType = expression.GetType();
+                    throw new
+                        ArgumentException($"Expected some expression as {nameof(UnaryExpression)} but received {notExpressionType.FullName}");
                 default:
                     throw new ArgumentException("Expected constant expression");
             }
