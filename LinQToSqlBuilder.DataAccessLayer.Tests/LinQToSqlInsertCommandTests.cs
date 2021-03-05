@@ -256,5 +256,19 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                             query.CommandText);
         }
 
+        [Test]
+        public void testNotMember()
+        {
+            var not = true;
+
+            var query = SqlBuilder.Insert<UserGroup>(x => new UserGroup { 
+                IsDeleted = !not
+            });
+
+            Assert.AreEqual("INSERT INTO [UsersGroup] ([IsDeleted]) VALUES (@Param1)", query.CommandText);
+            Assert.AreEqual(1, query.CommandParameters.Count);
+            Assert.AreEqual(false, query.CommandParameters["Param1"]);
+        }
+
     }
 }

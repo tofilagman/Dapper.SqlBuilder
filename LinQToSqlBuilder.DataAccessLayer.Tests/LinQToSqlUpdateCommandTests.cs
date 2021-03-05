@@ -51,5 +51,26 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
 
             Assert.AreEqual("UPDATE [userlog] SET [DateSlide] = @Param1 WHERE [userlog].[Guid] = @Param2", query.CommandText);
         }
+
+        [Test]
+        public void UpdateSingleRecord()
+        {
+            var undelete = true; 
+            var query = SqlBuilder.Update<UserGroup>(_ => new UserGroup
+            {
+                CreatedBy = "TestSystem",
+                CreatedDate = DateTimeOffset.Now,
+                Description = "Created from Test System",
+                Name = "TestUserGroup",
+                ID_FilingStatus = FilingStatus.Approved,
+                IsDeleted = false,
+                IsUndeletable = !undelete
+            });
+
+            Assert.AreEqual("INSERT INTO [UsersGroup] ([CreatedBy], [CreatedDate], [Description], [Name], [IsDeleted]) " +
+                            "VALUES (@Param1, @Param2, @Param3, @Param4, @Param5)",
+                            query.CommandText);
+            Assert.AreEqual(7, query.CommandParameters.Count);
+        }
     }
 }

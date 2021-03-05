@@ -25,5 +25,15 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests.Entities
         public string CreatedBy { get; set; }
 
         public string ModifiedBy { get; set; }
+
+        public FilingStatus ID_FilingStatus { get; set; }
+    }
+
+    public enum FilingStatus
+    {
+        Filed = 1,
+        Approved = 2,
+        DisApproved = 3,
+        Cancelled = 4
     }
 }
