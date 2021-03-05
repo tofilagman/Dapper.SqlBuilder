@@ -1,4 +1,5 @@
 ﻿using Dapper.SqlBuilder.Extensions;
+using Dapper.SqlBuilder.Resolver.ExpressionTree;
 using System;
 using System.Linq;
 using System.Linq.Expressions;
@@ -86,7 +87,16 @@ namespace Dapper.SqlBuilder.Resolver
 
             if (assignmentExpression.Expression is MethodCallExpression mce)
             {
-                ResolveUpdateMethodCall(mce);
+                var columnName = GetColumnName(assignmentExpression);
+                var node = ResolveQuery(mce);
+                if (node is ValueNode valueNode)
+                    Builder.UpdateAssignField(columnName, valueNode.Value);
+                else
+                {
+                    var expressionValue = GetExpressionValue(mce);
+                    Builder.UpdateAssignField(columnName, expressionValue); 
+                }
+                return;
             }
 
             if(assignmentExpression.Expression is MemberExpression memberExpression)
@@ -97,18 +107,6 @@ namespace Dapper.SqlBuilder.Resolver
 
                 return;
             } 
-        }
-
-        private void ResolveUpdateMethodCall(MethodCallExpression callExpression)
-        {
-            var arguments = callExpression.Arguments.Select(GetExpressionValue).ToArray();
-            var resolver  = StatementResolvers.FirstOrDefault(_ => _.SupportedMethod == callExpression.Method);
-
-            if (resolver == null)
-                throw new
-                    NotSupportedException($"The provided method expression {callExpression.Method.DeclaringType.Name}.{callExpression.Method.Name}() is not supported");
-
-            resolver.ResolveStatement(Builder, callExpression, arguments);
-        }
+        } 
     }
 }
