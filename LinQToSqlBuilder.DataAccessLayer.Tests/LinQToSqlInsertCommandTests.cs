@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using Dapper.SqlBuilder;
 using Dapper.SqlBuilder.Adapter;
 using LinQToSqlBuilder.DataAccessLayer.Tests.Base;
@@ -268,6 +269,38 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             Assert.AreEqual("INSERT INTO [UsersGroup] ([IsDeleted]) VALUES (@Param1)", query.CommandText);
             Assert.AreEqual(1, query.CommandParameters.Count);
             Assert.AreEqual(false, query.CommandParameters["Param1"]);
+        }
+
+        [Test]
+        public void InsertManyRecords()
+        {
+            var nlst = new[]
+            {
+                new UserGroup{ Id  =1, ID_FilingStatus = FilingStatus.Filed, CreatedBy = "test" },
+                new UserGroup{ Id  =2, ID_FilingStatus = FilingStatus.Approved, CreatedBy = "test2" },
+                new UserGroup{ Id  =3, ID_FilingStatus = FilingStatus.Cancelled, CreatedBy = "test3" },
+                new UserGroup{ Id  =4, ID_FilingStatus = FilingStatus.DisApproved, CreatedBy = "test4" },
+                new UserGroup{ Id  =5, ID_FilingStatus = FilingStatus.Cancelled, CreatedBy = "test5" },
+                new UserGroup{ Id  =5, ID_FilingStatus = FilingStatus.Filed, CreatedBy = "test6" },
+            };
+
+            var query = SqlBuilder.Many<UserGroup>();
+            foreach (var nd in nlst)
+            {
+                query.Insert(x => new UserGroup { ID_FilingStatus = nd.ID_FilingStatus, CreatedBy = nd.CreatedBy });
+            }
+
+            var result = new StringBuilder();
+            result.AppendLine("INSERT INTO [UsersGroup] ([ID_FilingStatus], [CreatedBy]) VALUES (@Param1, @Param2)");
+            result.AppendLine("INSERT INTO [UsersGroup] ([ID_FilingStatus], [CreatedBy]) VALUES (@Param3, @Param4)");
+            result.AppendLine("INSERT INTO [UsersGroup] ([ID_FilingStatus], [CreatedBy]) VALUES (@Param5, @Param6)");
+            result.AppendLine("INSERT INTO [UsersGroup] ([ID_FilingStatus], [CreatedBy]) VALUES (@Param7, @Param8)");
+            result.AppendLine("INSERT INTO [UsersGroup] ([ID_FilingStatus], [CreatedBy]) VALUES (@Param9, @Param10)");
+            result.Append("INSERT INTO [UsersGroup] ([ID_FilingStatus], [CreatedBy]) VALUES (@Param11, @Param12)");
+
+            Assert.AreEqual(result.ToString(), query.CommandText);
+            Assert.AreEqual(12, query.CommandParameters.Count);
+
         }
 
     }

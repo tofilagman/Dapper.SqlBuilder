@@ -80,6 +80,11 @@ namespace Dapper.SqlBuilder
                .Update(expression);
         }
 
+        public static SqlBuilderMultiple<T> Many<T>()
+        {
+            return new SqlBuilderMultiple<T>();
+        }
+
         /// <summary>
         /// Prepares a delete command to specified <typeparamref name="T"/> 
         /// </summary>
@@ -502,6 +507,85 @@ namespace Dapper.SqlBuilder
             var nbd = builder?.Invoke(fg);
             return this.Add(nbd ?? fg);
         }
+
+        public string CommandText
+        {
+            get
+            {
+                return string.Join("\r\n", sqlBuilders.Select(x => x.CommandText));
+            }
+        }
+
+        public IDictionary<string, object> CommandParameters
+        {
+            get
+            {
+                return sqlBuilders.SelectMany(x => x.CommandParameters).ToDictionary(x => x.Key, x => x.Value);
+            }
+        }
+
+        private int LastCount
+        {
+            get
+            {
+                if (sqlBuilders.Count == 0)
+                    return 0;
+                return sqlBuilders.Max(x => x.SqlBuilder.CurrentParamIndex);
+            }
+        }
+    }
+
+    public class SqlBuilderMultiple<T>
+    {
+        private readonly List<SqlBuilderBase> sqlBuilders;
+        public SqlBuilderMultiple()
+        {
+            sqlBuilders = new List<SqlBuilderBase>();
+        }
+
+        public SqlBuilderMultiple<T> Add(SqlBuilder<T> builder)
+        {
+            sqlBuilders.Add(builder);
+            return this;
+        }
+
+        public SqlBuilder<T> Insert(Expression<Func<T, T>> expression)
+        {
+            var builder = new SqlBuilder<T>(LastCount)
+            {
+                Operation = SqlOperations.Insert
+            }.Insert(expression);
+
+            this.Add(builder);
+
+            return builder;
+        }
+
+        public SqlBuilder<T> Update(Expression<Func<T, T>> expression)
+        {
+            var builder = new SqlBuilder<T>(LastCount)
+            {
+                Operation = SqlOperations.Update
+            }
+               .Update(expression);
+
+            this.Add(builder);
+
+            return builder;
+        }
+
+        public SqlBuilder<T> Delete(Expression<Func<T, bool>> expression)
+        {
+            var builder = new SqlBuilder<T>(LastCount)
+            {
+                Operation = SqlOperations.Delete
+            }.Where(expression);
+
+            this.Add(builder);
+
+            return builder;
+        }
+
 
         public string CommandText
         {
