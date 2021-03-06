@@ -67,8 +67,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                 IsUndeletable = !undelete
             });
 
-            Assert.AreEqual("INSERT INTO [UsersGroup] ([CreatedBy], [CreatedDate], [Description], [Name], [IsDeleted]) " +
-                            "VALUES (@Param1, @Param2, @Param3, @Param4, @Param5)",
+            Assert.AreEqual("UPDATE [UsersGroup] SET [CreatedBy] = @Param1, [CreatedDate] = @Param2, [Description] = @Param3, [Name] = @Param4, [ID_FilingStatus] = @Param5, [IsDeleted] = @Param6, [IsUndeletable] = @Param7",
                             query.CommandText);
             Assert.AreEqual(7, query.CommandParameters.Count);
         }

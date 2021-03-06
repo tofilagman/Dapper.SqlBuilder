@@ -31,8 +31,8 @@ namespace Dapper.SqlBuilder.Resolver
                         {
                             Update<T>(assignment);
                         }
-                    } 
-                    break; 
+                    }
+                    break;
                 default:
                     throw new ArgumentException("Invalid expression");
             }
@@ -78,7 +78,7 @@ namespace Dapper.SqlBuilder.Resolver
 
             if (assignmentExpression.Expression is UnaryExpression unaryExpression)
             {
-                var columnName      = GetColumnName(assignmentExpression);
+                var columnName = GetColumnName(assignmentExpression);
                 var expressionValue = GetExpressionValue(unaryExpression);
                 Builder.UpdateAssignField(columnName, expressionValue);
 
@@ -87,26 +87,49 @@ namespace Dapper.SqlBuilder.Resolver
 
             if (assignmentExpression.Expression is MethodCallExpression mce)
             {
-                var columnName = GetColumnName(assignmentExpression);
-                var node = ResolveQuery(mce);
-                if (node is ValueNode valueNode)
-                    Builder.UpdateAssignField(columnName, valueNode.Value);
-                else
-                {
-                    var expressionValue = GetExpressionValue(mce);
-                    Builder.UpdateAssignField(columnName, expressionValue); 
-                }
-                return;
+                ResolveUpdateMethodCall(assignmentExpression, mce); 
             }
 
-            if(assignmentExpression.Expression is MemberExpression memberExpression)
+            if (assignmentExpression.Expression is MemberExpression memberExpression)
             {
                 var columnName = GetColumnName(assignmentExpression);
                 var expressionValue = GetExpressionValue(memberExpression);
                 Builder.UpdateAssignField(columnName, expressionValue);
 
                 return;
-            } 
-        } 
+            }
+
+            if (assignmentExpression.Expression is ConstantExpression constantExpression)
+            {
+                var columnName = GetColumnName(assignmentExpression);
+                var expressionValue = GetExpressionValue(constantExpression);
+                Builder.UpdateAssignField(columnName, expressionValue);
+
+                return;
+            }
+        }
+
+        private void ResolveUpdateMethodCall(MemberAssignment assignment, MethodCallExpression callExpression)
+        {
+            var arguments = callExpression.Arguments.Select(GetExpressionValue).ToArray();
+            var resolver = StatementResolvers.FirstOrDefault(_ => _.SupportedMethod == callExpression.Method);
+
+            if (resolver == null)
+            {
+                var columnName = GetColumnName(assignment);
+                var node = ResolveQuery(callExpression);
+                if (node is ValueNode valueNode)
+                    Builder.UpdateAssignField(columnName, valueNode.Value);
+                else
+                {
+                    var expressionValue = GetExpressionValue(callExpression);
+                    Builder.UpdateAssignField(columnName, expressionValue);
+                }
+                return;
+            }
+            //throw new NotSupportedException($"The provided method expression {callExpression.Method.DeclaringType.Name}.{callExpression.Method.Name}() is not supported");
+
+            resolver.ResolveStatement(Builder, callExpression, arguments);
+        }
     }
 }
