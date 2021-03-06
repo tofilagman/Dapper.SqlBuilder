@@ -109,5 +109,15 @@ namespace Dapper.SqlBuilder.Extensions
             return await con.ExecuteAsync(builderCollection.CommandText, builderCollection.CommandParameters, tran, timeOut);
         }
 
+        public static int Execute<T>(this SqlBuilderMultiple<T> builderCollection, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        {
+            return con.Execute(builderCollection.CommandText, builderCollection.CommandParameters, tran, timeOut);
+        }
+
+        public static async Task<int> ExecuteAsync<T>(this SqlBuilderMultiple<T> builderCollection, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        {
+            return await con.ExecuteAsync(builderCollection.CommandText, builderCollection.CommandParameters, tran, timeOut);
+        }
+
     }
 }
