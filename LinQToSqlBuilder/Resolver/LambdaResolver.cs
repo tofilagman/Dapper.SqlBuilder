@@ -50,8 +50,16 @@ namespace Dapper.SqlBuilder.Resolver
 
         public static string GetColumnName(Expression expression)
         {
-            var member = GetMemberExpression(expression);
-            return GetColumnName(member);
+            if (expression.NodeType != ExpressionType.Call)
+            {
+                var member = GetMemberExpression(expression);
+                return GetColumnName(member);
+            }
+            else
+            {
+                var mem = (expression as MethodCallExpression).Arguments[0];
+                return GetColumnName(mem);
+            }
         }
 
         public static string GetColumnName(MemberAssignment expression)
@@ -115,7 +123,6 @@ namespace Dapper.SqlBuilder.Resolver
                     return GetMemberExpression((expression as UnaryExpression)?.Operand);
                 case ExpressionType.Lambda:
                     return GetMemberExpression((expression as LambdaExpression).Body);
-
             }
 
             throw new ArgumentException("Member expression expected");

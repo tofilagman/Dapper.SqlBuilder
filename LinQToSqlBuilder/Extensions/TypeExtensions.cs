@@ -62,5 +62,10 @@ namespace Dapper.SqlBuilder.Extensions
                 return type.GetGenericTypeDefinition() == typeof(List<>) || type.GetGenericTypeDefinition() == typeof(IEnumerable<>);
             return false;
         }
+
+        public static T As<T>(this object value)
+        {
+            return (T)value;
+        }
     }
 }

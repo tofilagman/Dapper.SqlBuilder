@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Dapper.SqlBuilder;
 using Dapper.SqlBuilder.Adapter;
+using Dapper.SqlBuilder.Extensions;
 using LinQToSqlBuilder.DataAccessLayer.Tests.Base;
 using LinQToSqlBuilder.DataAccessLayer.Tests.Entities;
 using NUnit.Framework;
@@ -403,5 +404,31 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             Assert.AreEqual(cmd, qry.CommandText);
             Assert.AreEqual(3, qry.CommandParameters.Count);
         }
+
+        [Test]
+        public void ResultWithAsHelper()
+        {
+            var qry = SqlBuilder
+                .Select<UserGroup>().Where(x => x.Id == 3 || x.IsDeleted)
+                .LeftJoin<User>((x, y) => x.Id == y.Id && y.FirstName == "Jose")
+                .Result<PermissionGroup, UserGroup>((x, y) => new UserGroup
+                {
+                    Id = x.Id,
+                    Name = y.ResourcePath,
+                    ID_FilingStatus = y.Name.As<FilingStatus>(),
+                    CreatedBy = y.Date.As<string>(),
+                    Description = y.UserType.As<string>()
+                });
+
+            Assert.IsNotNull(qry.CommandText);
+
+            var cmd = "SELECT [Users].[Id], [permissiongroups].[ResourcePath] [Name], [permissiongroups].[Name] [ID_FilingStatus], [permissiongroups].[Date] [CreatedBy], [permissiongroups].[UserType] [Description] ";
+            cmd += "FROM [UsersGroup] LEFT JOIN [Users] ON ([UsersGroup].[Id] = [Users].[Id] AND [Users].[FirstName] = @Param3) ";
+            cmd += "WHERE ([UsersGroup].[Id] = @Param1 OR [UsersGroup].[IsDeleted] = @Param2)";
+
+            Assert.AreEqual(cmd, qry.CommandText);
+            Assert.AreEqual(3, qry.CommandParameters.Count);
+        }
+
     }
 }

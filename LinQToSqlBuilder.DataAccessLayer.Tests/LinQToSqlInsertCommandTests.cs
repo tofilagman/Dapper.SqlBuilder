@@ -140,7 +140,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             Assert.AreEqual(query.CommandText, "INSERT INTO [permissiongroups] ([Name], [ResourcePath], [UserType], [Date], [ID_Perm]) VALUES (@Param1, @Param2, @Param3, @Param4, @Param5)");
         }
 
-        [Test]
+        [Test , Ignore("Obsolete")]
         public void InsertMultipleTableObjectArray()
         {
             var arr = new[]
@@ -179,7 +179,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                             query.CommandText);
         }
 
-        [Test]
+        [Test , Ignore("Obsolete")]
         public void InsertMultipleTableObjectList()
         {
             var arr = new List<UserGroup>
@@ -218,7 +218,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                             query.CommandText);
         }
 
-        [Test]
+        [Test, Ignore("Obsolete")]
         public void InsertMultipleTableObjectArrayByParam()
         {
             var arr = new[]

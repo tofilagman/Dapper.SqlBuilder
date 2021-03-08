@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq;
 using System.Linq.Expressions;
 using Dapper.SqlBuilder.Adapter;
+using Dapper.SqlBuilder.Resolver.ExpressionTree;
 using Dapper.SqlBuilder.ValueObjects;
 
 namespace Dapper.SqlBuilder.Resolver
@@ -100,6 +102,14 @@ namespace Dapper.SqlBuilder.Resolver
             {
                 Select<T>(memberExpression, alias);
             }
+            else if (member.Expression is MethodCallExpression mce)
+            {
+                if (mce.Method.Name != nameof(Extensions.TypeExtensions.As))
+                    throw new Exception("Use As<> extension to map type differences");
+
+                var column = GetColumnName(mce); 
+                Builder.Select(GetTableName(mce), column, alias);
+            }
             else
             {
                 var column = GetColumnName(exp);
@@ -109,6 +119,24 @@ namespace Dapper.SqlBuilder.Resolver
                 else
                     Builder.Select(GetTableName<T>(), column, alias);
             }
+        }
+
+        public string GetTableName(Expression expression)
+        {
+            if (expression is MethodCallExpression mce)
+            {
+                return GetTableName(mce.Arguments[0]);
+            }
+            if (expression is MemberExpression me)
+            {
+                return GetTableName(me.Expression.Type);
+            }
+            else if (expression is UnaryExpression un)
+            {
+                return GetTableName(un.Operand);
+            }
+
+            throw new Exception("Cant define a table from an expression");
         }
 
         public void SelectWithFunction<T>(Expression<Func<T, object>> expression, SelectFunction selectFunction)
