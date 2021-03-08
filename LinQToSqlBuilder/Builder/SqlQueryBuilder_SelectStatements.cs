@@ -84,7 +84,15 @@ namespace Dapper.SqlBuilder.Builder
             if (string.IsNullOrEmpty(alias) || fieldName == alias)
                 Select(tablename, fieldName);
             else
-                SelectionList.Add($"{ Adapter.Field(tablename, fieldName)} { Adapter.Alias(alias) }");
+                SelectionList.Add($"{ Adapter.Field(tablename, fieldName) } { Adapter.Alias(alias) }");
+        }
+
+        public void SelectFormat(string tableName, string fieldName, string alias, string format)
+        {
+            if (string.IsNullOrEmpty(alias) || fieldName == alias)
+                SelectionList.Add($"FORMAT({ Adapter.Field(tableName, fieldName) }, '{ format }')");
+            else
+                SelectionList.Add($"FORMAT({ Adapter.Field(tableName, fieldName) }, '{ format }') { Adapter.Alias(alias) }");
         }
 
         public void Select(string tableName, string fieldName, SelectFunction selectFunction)

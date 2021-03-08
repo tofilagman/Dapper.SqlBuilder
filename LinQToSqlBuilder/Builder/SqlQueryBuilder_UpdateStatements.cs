@@ -49,5 +49,10 @@
             var updateValue = $"{Adapter.Field(fieldName)} = {Adapter.Field(fieldName)} {operation} {Adapter.Parameter(paramId)}";
             _updateValues.Add(updateValue);
         }
+
+        public void SelectFieldFormatString(string fieldName, string format)
+        {
+            var formatValue = $"FORMAT({fieldName}, '{format}')";
+        }
     }
 }

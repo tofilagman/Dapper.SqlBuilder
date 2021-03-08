@@ -67,5 +67,17 @@ namespace Dapper.SqlBuilder.Extensions
         {
             return (T)value;
         }
+
+        /// <summary>
+        /// Allows to call the SQL format function
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value"></param>
+        /// <param name="format"></param>
+        /// <returns></returns>
+        public static string FormatSql<T>(this T value, string format)
+        {
+            return format;
+        }
     }
 }

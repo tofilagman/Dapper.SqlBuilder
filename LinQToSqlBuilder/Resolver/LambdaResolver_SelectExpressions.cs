@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using Dapper.SqlBuilder.Adapter;
+using Dapper.SqlBuilder.Extensions;
 using Dapper.SqlBuilder.Resolver.ExpressionTree;
 using Dapper.SqlBuilder.ValueObjects;
 
@@ -104,11 +107,22 @@ namespace Dapper.SqlBuilder.Resolver
             }
             else if (member.Expression is MethodCallExpression mce)
             {
-                if (mce.Method.Name != nameof(Extensions.TypeExtensions.As))
-                    throw new Exception("Use As<> extension to map type differences");
+                if (mce.Method.Name == nameof(Extensions.TypeExtensions.As))
+                {
+                    var column = GetColumnName(mce);
+                    Builder.Select(GetTableName(mce), column, alias);
+                    return;
+                }
 
-                var column = GetColumnName(mce); 
-                Builder.Select(GetTableName(mce), column, alias);
+                if (mce.Method.Name == nameof(Extensions.TypeExtensions.FormatSql))
+                {
+                    var column = GetColumnName(mce);
+                    var format = GetExpressionValue(mce.Arguments[1]).ToString(); 
+                    Builder.SelectFormat(GetTableName(mce), column, alias, format);
+                    return;
+                }
+
+                throw new Exception("Use As<> extension to map type differences");
             }
             else
             {
