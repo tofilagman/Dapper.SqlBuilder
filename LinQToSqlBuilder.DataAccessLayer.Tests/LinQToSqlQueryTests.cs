@@ -437,7 +437,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                 .Select<UserGroup>().Where(x => x.Id == 3 || x.IsDeleted)
                 .LeftJoin<User>((x, y) => x.Id == y.Id && y.FirstName == "Jose")
                 .Result<PermissionGroup, UserGroup>((x, y) => new UserGroup
-                { 
+                {
                     CreatedBy = y.Date.FormatSql("HH:mm"),
                 });
 
@@ -448,7 +448,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             cmd += "WHERE ([UsersGroup].[Id] = @Param1 OR [UsersGroup].[IsDeleted] = @Param2)";
 
             Assert.AreEqual(cmd, qry.CommandText);
-            Assert.AreEqual(3, qry.CommandParameters.Count); 
+            Assert.AreEqual(3, qry.CommandParameters.Count);
         }
 
         [Test]
@@ -477,6 +477,29 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         }
 
         [Test]
+        public void ResultWithIsNullHelperForNullableTypes()
+        {
+            var ndate = DateTime.Now;
+            var qry = SqlBuilder
+                .Select<UserGroup>().Where(x => x.Id == 3 || x.IsDeleted)
+                .LeftJoin<User>((x, y) => x.Id == y.Id && y.FirstName == "Jose")
+                .Result<PermissionGroup, UserGroup>((x, y) => new UserGroup
+                {
+                    WorkCredit = y.WorkCredit.IsNullSql(0),
+                    IsDeleted = y.ntf.IsNullSql(false)
+                });
+
+            Assert.IsNotNull(qry.CommandText);
+
+            var cmd = $"SELECT ISNULL([permissiongroups].[WorkCredit], 0) [WorkCredit], ISNULL([permissiongroups].[ntf], 0) [IsDeleted] ";
+            cmd += "FROM [UsersGroup] LEFT JOIN [Users] ON ([UsersGroup].[Id] = [Users].[Id] AND [Users].[FirstName] = @Param3) ";
+            cmd += "WHERE ([UsersGroup].[Id] = @Param1 OR [UsersGroup].[IsDeleted] = @Param2)";
+
+            Assert.AreEqual(cmd, qry.CommandText);
+            Assert.AreEqual(3, qry.CommandParameters.Count);
+        }
+
+        [Test]
         public void ResultWithConcatHelper()
         {
             var ndate = DateTime.Now;
@@ -487,7 +510,33 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                 {
                     CreatedBy = y.Name.ConcatSql("ss", " ", y.Date),
                     Description = y.Name.ConcatSql(x.LastName, " ", x.FirstName),
-                    Name = y.Date.ConcatSql(DateTime.Now, 32, ndate)
+                    Name = y.Date.ConcatSql(DateTime.Now, 32, ndate),
+                    ModifiedBy = y.WorkCredit.ConcatSql(0),
+                });
+
+            Assert.IsNotNull(qry.CommandText);
+
+            var cmd = $"SELECT CONCAT([permissiongroups].[Name], 'ss', ' ', [permissiongroups].[Date]) [CreatedBy], CONCAT([permissiongroups].[Name], [Users].[LastName], ' ', [Users].[FirstName]) [Description], CONCAT([permissiongroups].[Date], GETDATE(), '32', '{ ndate }') [Name] ";
+            cmd += "FROM [UsersGroup] LEFT JOIN [Users] ON ([UsersGroup].[Id] = [Users].[Id] AND [Users].[FirstName] = @Param3) ";
+            cmd += "WHERE ([UsersGroup].[Id] = @Param1 OR [UsersGroup].[IsDeleted] = @Param2)";
+
+            Assert.AreEqual(cmd, qry.CommandText);
+            Assert.AreEqual(3, qry.CommandParameters.Count);
+        }
+
+        [Test]
+        public void ResultWithCaseHelper()
+        {
+            var ndate = DateTime.Now;
+            var qry = SqlBuilder
+                .Select<UserGroup>().Where(x => x.Id == 3 || x.IsDeleted)
+                .LeftJoin<User>((x, y) => x.Id == y.Id && y.FirstName == "Jose")
+                .Result<PermissionGroup, UserGroup>((x, y) => new UserGroup
+                {
+                    CreatedBy = y.Case(z => z.Name == "ss").Then("sed")
+                                .When(z=> z.ResourcePath != "nds").Then("swd")
+                                .When(z=> z.ntf == null).Then(y.ResourcePath)
+                                .Else(y.Name).End<string>(),
                 });
 
             Assert.IsNotNull(qry.CommandText);

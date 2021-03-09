@@ -27,6 +27,8 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests.Entities
         public string ModifiedBy { get; set; }
 
         public FilingStatus ID_FilingStatus { get; set; }
+
+        public int WorkCredit { get; set; }
     }
 
     public enum FilingStatus

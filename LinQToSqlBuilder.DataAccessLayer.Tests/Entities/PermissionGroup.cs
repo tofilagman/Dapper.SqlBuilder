@@ -15,6 +15,9 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests.Entities
         public DateTime Date { get; set; }
 
         public int ID_Perm { get; set; }
+
+        public int? WorkCredit { get; set; }
+        public bool? ntf { get; set; }
     }
 
     public enum UserTypeEnum

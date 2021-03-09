@@ -80,6 +80,11 @@ namespace Dapper.SqlBuilder.Extensions
             return format;
         }
 
+        public static T IsNullSql<T>(this T? value, T nullValue) where T : struct
+        {
+            return nullValue;
+        }
+
         public static T IsNullSql<T>(this T value, T nullValue)
         {
             return nullValue;
@@ -90,7 +95,12 @@ namespace Dapper.SqlBuilder.Extensions
             return string.Join(' ', args);
         }
 
-        public static string SafeValue<T>(this T obj, string specialFunc = null)
+        public static ICaseSql<T> Case<T>(this T value, Expression<Func<T, bool>> expression)
+        {
+            return new CaseSql<T>().When(expression);
+        }
+
+        internal static string SafeValue<T>(this T obj, string specialFunc = null)
         {
             if (specialFunc != null && specialFunc == obj.ToString())
             {
@@ -101,11 +111,11 @@ namespace Dapper.SqlBuilder.Extensions
             {
                 return "NULL";
             }
-            else if (typeof(T).IsNumeric())
+            else if (typeof(T).IsNumeric() || obj.ToString().IsNumeric())
             {
                 return obj.ToString();
             }
-            else if (typeof(T) == typeof(bool))
+            else if (typeof(T) == typeof(bool) || bool.TryParse(obj.ToString(), out bool b))
             {
                 return bool.Parse(obj.ToString()) ? "1" : "0";
             }
@@ -115,7 +125,7 @@ namespace Dapper.SqlBuilder.Extensions
             }
         }
 
-        public static bool IsNumeric(this Type type)
+        internal static bool IsNumeric(this Type type)
         {
             if (type == null) { return false; }
 
@@ -141,6 +151,15 @@ namespace Dapper.SqlBuilder.Extensions
                 default:
                     return false;
             }
+        }
+
+        internal static bool IsNumeric(this string obj)
+        {
+            return int.TryParse(obj, out var s) ||
+                long.TryParse(obj, out var s1) ||
+                decimal.TryParse(obj, out var s2) ||
+                double.TryParse(obj, out var s3) ||
+                float.TryParse(obj, out var s4);
         }
     }
 }
