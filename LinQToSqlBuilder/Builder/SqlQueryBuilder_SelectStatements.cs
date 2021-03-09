@@ -90,7 +90,7 @@ namespace Dapper.SqlBuilder.Builder
         public void SelectFormat(string tableName, string fieldName, string alias, string format)
         {
             if (string.IsNullOrEmpty(alias) || fieldName == alias)
-                SelectionList.Add($"FORMAT({ Adapter.Field(tableName, fieldName) }, '{ format }')");
+                SelectionList.Add($"FORMAT({ Adapter.Field(tableName, fieldName) }, '{ format }') { Adapter.Alias(fieldName) }");
             else
                 SelectionList.Add($"FORMAT({ Adapter.Field(tableName, fieldName) }, '{ format }') { Adapter.Alias(alias) }");
         }
