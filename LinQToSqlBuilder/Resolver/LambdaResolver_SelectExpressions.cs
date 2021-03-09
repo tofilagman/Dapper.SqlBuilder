@@ -107,22 +107,11 @@ namespace Dapper.SqlBuilder.Resolver
             }
             else if (member.Expression is MethodCallExpression mce)
             {
-                if (mce.Method.Name == nameof(Extensions.TypeExtensions.As))
-                {
-                    var column = GetColumnName(mce);
-                    Builder.Select(GetTableName(mce), column, alias);
-                    return;
-                }
-
-                if (mce.Method.Name == nameof(Extensions.TypeExtensions.FormatSql))
-                {
-                    var column = GetColumnName(mce);
-                    var format = GetExpressionValue(mce.Arguments[1]).ToString(); 
-                    Builder.SelectFormat(GetTableName(mce), column, alias, format);
-                    return;
-                }
-
-                throw new Exception("Use As<> extension to map type differences");
+                SelectWithSqlFunctionCall(mce, alias);
+            }
+            else if (member.Expression is UnaryExpression ue)
+            {
+                SelectUnaryWithCall<T>(ue, alias);
             }
             else
             {
@@ -133,6 +122,18 @@ namespace Dapper.SqlBuilder.Resolver
                 else
                     Builder.Select(GetTableName<T>(), column, alias);
             }
+        }
+
+        private void SelectUnaryWithCall<T>(UnaryExpression ex, string alias)
+        {
+            if (ex.Operand is MethodCallExpression mcue)
+                SelectWithSqlFunctionCall(mcue, alias);
+            else if (ex.Operand is UnaryExpression eus)
+            {
+                SelectUnaryWithCall<T>(eus, alias);
+            }
+            else
+                Select<T>(ex.Operand);
         }
 
         public string GetTableName(Expression expression)
@@ -178,6 +179,98 @@ namespace Dapper.SqlBuilder.Resolver
         {
             var fieldName = GetColumnName(GetMemberExpression(expression));
             Builder.GroupBy(GetTableName<T>(), fieldName);
+        }
+
+        private void SelectWithSqlFunctionCall(MethodCallExpression mce, string alias)
+        {
+            if (mce.Method.Name == nameof(Extensions.TypeExtensions.As))
+            {
+                var column = GetColumnName(mce);
+                Builder.Select(GetTableName(mce), column, alias);
+                return;
+            }
+
+            if (mce.Method.Name == nameof(Extensions.TypeExtensions.FormatSql))
+            {
+                var column = GetColumnName(mce);
+                var format = GetExpressionValue(mce.Arguments[1]).ToString();
+                Builder.SelectFormat(GetTableName(mce), column, alias, format);
+                return;
+            }
+
+            if (mce.Method.Name == nameof(Extensions.TypeExtensions.IsNullSql))
+            {
+                var column = GetColumnName(mce);
+                if (mce.Arguments[1] is MemberExpression me)
+                {
+                    if (IsDateNow(me))
+                    {
+                        Builder.SelectIsNull(GetTableName(mce), column, alias, Builder.Adapter.CurrentDate());
+                        return;
+                    }
+                    else if (me.Expression is ParameterExpression)
+                    {
+                        var nullColumn = GetColumnName(mce.Arguments[1]);
+                        var nullTableName = GetTableName(mce.Arguments[1]);
+                        Builder.SelectIsNull(GetTableName(mce), column, alias, nullColumn, nullTableName);
+                        return;
+                    }
+                }
+
+                var nullValue = GetExpressionValue(mce.Arguments[1]);
+                Builder.SelectIsNull(GetTableName(mce), column, alias, nullValue);
+                return;
+            }
+
+            if (mce.Method.Name == nameof(Extensions.TypeExtensions.ConcatSql))
+            {
+                var column = GetColumnName(mce);
+
+                if (mce.Arguments[1] is NewArrayExpression nae)
+                {
+                    var nlst = new List<string>();
+                    for (var i = 0; i < nae.Expressions.Count; i++)
+                    {
+                        var expr = ResolveExpression(nae.Expressions[i]);
+
+                        if (expr is MemberExpression me)
+                        {
+                            if (IsDateNow(me))
+                            {
+                                nlst.Add(Builder.Adapter.CurrentDate());
+                                continue;
+                            }
+                            else if (me.Expression is ParameterExpression)
+                            {
+                                var nullColumn = GetColumnName(expr);
+                                var nullTableName = GetTableName(expr);
+                                nlst.Add(Builder.Adapter.Field(nullTableName, nullColumn));
+                                continue;
+                            }
+                        }
+
+                        var nullValue = GetExpressionValue(expr);
+                        nlst.Add(nullValue.SafeValue());
+                    }
+
+                    Builder.SelectConcatSql(GetTableName(mce), column, alias, nlst);
+                    return;
+                }
+            }
+
+            throw new Exception("Use As<> extension to map type differences");
+        }
+
+        private Expression ResolveExpression(Expression ex)
+        {
+            if (ex is UnaryExpression eus)
+                return ResolveExpression(eus.Operand);
+            return ex;
+        }
+
+        public bool IsDateNow(MemberExpression me)
+        {
+            return me.Member.Name == "Now" && me.Type == typeof(DateTime);
         }
     }
 }

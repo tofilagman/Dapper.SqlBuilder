@@ -2,8 +2,9 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
-		<PackageId>Dapper.SqlBuilder.Unofficial</PackageId> 
-		<Version>1.0.19</Version>
+		<PackageId>Dapper.SqlBuilder.Unofficial</PackageId>
+    <LangVersion>9.0</LangVersion>
+		<Version>1.0.20</Version>
 		<Copyright></Copyright>
 		<Authors>DotNet Brightener, tofi lagman</Authors>
 		<Company>Dapper.SqlBuilder.Unofficial</Company>

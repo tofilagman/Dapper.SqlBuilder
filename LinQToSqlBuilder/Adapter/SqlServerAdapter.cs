@@ -2,6 +2,26 @@
 {
    public class SqlServerAdapter : SqlServerAdapterBase, ISqlAdapter
     {
+        public string Concat()
+        {
+            return "CONCAT";
+        }
+
+        public string CurrentDate()
+        {
+            return "GETDATE()";
+        }
+
+        public string Format()
+        {
+            return "FORMAT";
+        }
+
+        public string IsNull()
+        {
+            return "ISNULL";
+        }
+
         public string QueryStringPage(string source,   string selection, string conditions, string order,
                                       int    pageSize, int    pageIndex = 0)
         {

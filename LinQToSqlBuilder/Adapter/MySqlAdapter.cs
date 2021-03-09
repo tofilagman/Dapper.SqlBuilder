@@ -62,5 +62,25 @@ namespace Dapper.SqlBuilder.Adapter
         {
             return alias;
         }
+
+        public string CurrentDate()
+        {
+            return "CURRENT_TIMESTAMP";
+        }
+
+        public string IsNull()
+        {
+            return "IFNULL";
+        }
+
+        public string Format()
+        {
+            return "DATE_FORMAT";
+        }
+
+        public string Concat()
+        {
+            return "CONCAT";
+        }
     }
 }

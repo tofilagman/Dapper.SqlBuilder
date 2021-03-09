@@ -79,5 +79,68 @@ namespace Dapper.SqlBuilder.Extensions
         {
             return format;
         }
+
+        public static T IsNullSql<T>(this T value, T nullValue)
+        {
+            return nullValue;
+        }
+
+        public static string ConcatSql<T>(this T value, params object[] args)
+        {
+            return string.Join(' ', args);
+        }
+
+        public static string SafeValue<T>(this T obj, string specialFunc = null)
+        {
+            if (specialFunc != null && specialFunc == obj.ToString())
+            {
+                return obj.ToString();
+            }
+
+            if (obj == null)
+            {
+                return "NULL";
+            }
+            else if (typeof(T).IsNumeric())
+            {
+                return obj.ToString();
+            }
+            else if (typeof(T) == typeof(bool))
+            {
+                return bool.Parse(obj.ToString()) ? "1" : "0";
+            }
+            else
+            {
+                return $"'{ obj.ToString().Replace("'", "''") }'";
+            }
+        }
+
+        public static bool IsNumeric(this Type type)
+        {
+            if (type == null) { return false; }
+
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                type = type.GetGenericArguments()[0];
+            }
+
+            switch (Type.GetTypeCode(type))
+            {
+                case TypeCode.Byte:
+                case TypeCode.SByte:
+                case TypeCode.UInt16:
+                case TypeCode.UInt32:
+                case TypeCode.UInt64:
+                case TypeCode.Int16:
+                case TypeCode.Int32:
+                case TypeCode.Int64:
+                case TypeCode.Decimal:
+                case TypeCode.Double:
+                case TypeCode.Single:
+                    return true;
+                default:
+                    return false;
+            }
+        }
     }
 }

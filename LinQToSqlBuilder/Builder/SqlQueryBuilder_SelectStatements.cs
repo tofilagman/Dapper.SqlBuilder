@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Dapper.SqlBuilder.Adapter;
+using Dapper.SqlBuilder.Extensions;
 using Dapper.SqlBuilder.ValueObjects;
 
 namespace Dapper.SqlBuilder.Builder
@@ -90,9 +91,33 @@ namespace Dapper.SqlBuilder.Builder
         public void SelectFormat(string tableName, string fieldName, string alias, string format)
         {
             if (string.IsNullOrEmpty(alias) || fieldName == alias)
-                SelectionList.Add($"FORMAT({ Adapter.Field(tableName, fieldName) }, '{ format }') { Adapter.Alias(fieldName) }");
+                SelectionList.Add($"{ Adapter.Format() }({ Adapter.Field(tableName, fieldName) }, '{ format }') { Adapter.Alias(fieldName) }");
             else
-                SelectionList.Add($"FORMAT({ Adapter.Field(tableName, fieldName) }, '{ format }') { Adapter.Alias(alias) }");
+                SelectionList.Add($"{ Adapter.Format() }({ Adapter.Field(tableName, fieldName) }, '{ format }') { Adapter.Alias(alias) }");
+        }
+
+        public void SelectIsNull(string tableName, string fieldName, string alias, object nullValue)
+        {
+            if (string.IsNullOrEmpty(alias) || fieldName == alias)
+                SelectionList.Add($"{ Adapter.IsNull() }({ Adapter.Field(tableName, fieldName) }, { nullValue.SafeValue(Adapter.CurrentDate()) }) { Adapter.Alias(fieldName) }");
+            else
+                SelectionList.Add($"{ Adapter.IsNull() }({ Adapter.Field(tableName, fieldName) }, { nullValue.SafeValue(Adapter.CurrentDate()) }) { Adapter.Alias(alias) }");
+        }
+
+        public void SelectIsNull(string tableName, string fieldName, string alias, string nullValue, string nullTableName)
+        {
+            if (string.IsNullOrEmpty(alias) || fieldName == alias)
+                SelectionList.Add($"{ Adapter.IsNull() }({ Adapter.Field(tableName, fieldName) }, { Adapter.Field(nullTableName, nullValue) }) { Adapter.Alias(fieldName) }");
+            else
+                SelectionList.Add($"{ Adapter.IsNull() }({ Adapter.Field(tableName, fieldName) }, { Adapter.Field(nullTableName, nullValue) }) { Adapter.Alias(alias) }");
+        }
+
+        public void SelectConcatSql(string tableName, string fieldName, string alias, IEnumerable<string> values)
+        {
+            if (string.IsNullOrEmpty(alias) || fieldName == alias)
+                SelectionList.Add($"{ Adapter.Concat() }({ Adapter.Field(tableName, fieldName) }, { string.Join(", ", values) }) { Adapter.Alias(fieldName) }");
+            else
+                SelectionList.Add($"{ Adapter.Concat() }({ Adapter.Field(tableName, fieldName) }, { string.Join(", ", values) }) { Adapter.Alias(alias) }");
         }
 
         public void Select(string tableName, string fieldName, SelectFunction selectFunction)

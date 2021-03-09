@@ -451,5 +451,54 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             Assert.AreEqual(3, qry.CommandParameters.Count); 
         }
 
+        [Test]
+        public void ResultWithIsNullHelper()
+        {
+            var ndate = DateTime.Now;
+            var qry = SqlBuilder
+                .Select<UserGroup>().Where(x => x.Id == 3 || x.IsDeleted)
+                .LeftJoin<User>((x, y) => x.Id == y.Id && y.FirstName == "Jose")
+                .Result<PermissionGroup, UserGroup>((x, y) => new UserGroup
+                {
+                    CreatedBy = y.Name.IsNullSql("ss"),
+                    Description = y.Name.IsNullSql(x.LastName),
+                    ModifiedDate = y.Date.IsNullSql(DateTime.Now),
+                    CreatedDate = y.Date.IsNullSql(ndate),
+                });
+
+            Assert.IsNotNull(qry.CommandText);
+
+            var cmd = $"SELECT ISNULL([permissiongroups].[Name], 'ss') [CreatedBy], ISNULL([permissiongroups].[Name], [Users].[LastName]) [Description], ISNULL([permissiongroups].[Date], GETDATE()) [ModifiedDate], ISNULL([permissiongroups].[Date], '{ ndate }') [CreatedDate] ";
+            cmd += "FROM [UsersGroup] LEFT JOIN [Users] ON ([UsersGroup].[Id] = [Users].[Id] AND [Users].[FirstName] = @Param3) ";
+            cmd += "WHERE ([UsersGroup].[Id] = @Param1 OR [UsersGroup].[IsDeleted] = @Param2)";
+
+            Assert.AreEqual(cmd, qry.CommandText);
+            Assert.AreEqual(3, qry.CommandParameters.Count);
+        }
+
+        [Test]
+        public void ResultWithConcatHelper()
+        {
+            var ndate = DateTime.Now;
+            var qry = SqlBuilder
+                .Select<UserGroup>().Where(x => x.Id == 3 || x.IsDeleted)
+                .LeftJoin<User>((x, y) => x.Id == y.Id && y.FirstName == "Jose")
+                .Result<PermissionGroup, UserGroup>((x, y) => new UserGroup
+                {
+                    CreatedBy = y.Name.ConcatSql("ss", " ", y.Date),
+                    Description = y.Name.ConcatSql(x.LastName, " ", x.FirstName),
+                    Name = y.Date.ConcatSql(DateTime.Now, 32, ndate)
+                });
+
+            Assert.IsNotNull(qry.CommandText);
+
+            var cmd = $"SELECT CONCAT([permissiongroups].[Name], 'ss', ' ', [permissiongroups].[Date]) [CreatedBy], CONCAT([permissiongroups].[Name], [Users].[LastName], ' ', [Users].[FirstName]) [Description], CONCAT([permissiongroups].[Date], GETDATE(), '32', '{ ndate }') [Name] ";
+            cmd += "FROM [UsersGroup] LEFT JOIN [Users] ON ([UsersGroup].[Id] = [Users].[Id] AND [Users].[FirstName] = @Param3) ";
+            cmd += "WHERE ([UsersGroup].[Id] = @Param1 OR [UsersGroup].[IsDeleted] = @Param2)";
+
+            Assert.AreEqual(cmd, qry.CommandText);
+            Assert.AreEqual(3, qry.CommandParameters.Count);
+        }
+
     }
 }

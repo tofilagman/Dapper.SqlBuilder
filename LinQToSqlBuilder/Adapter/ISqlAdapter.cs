@@ -33,6 +33,11 @@ namespace Dapper.SqlBuilder.Adapter
         string WhereCommand(string conditions);
 
         string Alias(string alias);
+
+        string CurrentDate();
+        string IsNull();
+        string Format();
+        string Concat();
     }
 
     enum SqlOperations
