@@ -63,9 +63,17 @@ namespace Dapper.SqlBuilder.Resolver
                 case ExpressionType.MemberAccess:
                     Select<T>(GetMemberExpression(expression));
                     break;
-                case ExpressionType.New:
-                    foreach (MemberExpression memberExp in (expression as NewExpression).Arguments)
-                        Select<T>(memberExp);
+                case ExpressionType.New: 
+                    var nxprs = (expression as NewExpression);
+                   
+                    for (var i = 0; i < nxprs.Arguments.Count; i++)
+                    {
+                        var expr = nxprs.Arguments[i];
+                        var mem = nxprs.Members[i];
+
+                        Select<T>((MemberExpression)expr, mem.Name);
+                    }
+
                     break;
                 case ExpressionType.MemberInit:
                     if (expression is MemberInitExpression memberInitExpression)

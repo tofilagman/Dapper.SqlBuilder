@@ -516,7 +516,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
 
             Assert.IsNotNull(qry.CommandText);
 
-            var cmd = $"SELECT CONCAT([permissiongroups].[Name], 'ss', ' ', [permissiongroups].[Date]) [CreatedBy], CONCAT([permissiongroups].[Name], [Users].[LastName], ' ', [Users].[FirstName]) [Description], CONCAT([permissiongroups].[Date], GETDATE(), '32', '{ ndate }') [Name] ";
+            var cmd = $"SELECT CONCAT([permissiongroups].[Name], 'ss', ' ', [permissiongroups].[Date]) [CreatedBy], CONCAT([permissiongroups].[Name], [Users].[LastName], ' ', [Users].[FirstName]) [Description], CONCAT([permissiongroups].[Date], GETDATE(), 32, '{ ndate }') [Name], CONCAT([permissiongroups].[WorkCredit], 0) [ModifiedBy] ";
             cmd += "FROM [UsersGroup] LEFT JOIN [Users] ON ([UsersGroup].[Id] = [Users].[Id] AND [Users].[FirstName] = @Param3) ";
             cmd += "WHERE ([UsersGroup].[Id] = @Param1 OR [UsersGroup].[IsDeleted] = @Param2)";
 
@@ -524,7 +524,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             Assert.AreEqual(3, qry.CommandParameters.Count);
         }
 
-        [Test]
+        [Test, Ignore("Incomplete Impl")]
         public void ResultWithCaseHelper()
         {
             var ndate = DateTime.Now;
@@ -548,6 +548,39 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             Assert.AreEqual(cmd, qry.CommandText);
             Assert.AreEqual(3, qry.CommandParameters.Count);
         }
+
+        [Test]
+        public void UnionQuery()
+        {
+            var qry = SqlBuilder
+                .Union<PermissionGroup>(x => x.Select(x=> new { x.ID, x.Name }).Where(y => y.ID == 2))
+                .Union<UserGroup>(x => x.Select(x=> new { ID = x.Id, x.Name }).Where(y => y.IsDeleted == true));
+
+            var commandQry = new StringBuilder();
+            commandQry.AppendLine("SELECT [permissiongroups].[ID], [permissiongroups].[Name] FROM [permissiongroups] WHERE [permissiongroups].[ID] = @Param1");
+            commandQry.AppendLine("UNION ALL");
+            commandQry.Append("SELECT [UsersGroup].[Id] [ID], [UsersGroup].[Name] FROM [UsersGroup] WHERE [UsersGroup].[IsDeleted] = @Param2");
+
+            Assert.AreEqual(commandQry.ToString(), qry.CommandText);
+            Assert.AreEqual(2, qry.CommandParameters.Count);
+        }
+
+        [Test]
+        public void UnionQueryNoParam()
+        {
+            var qry = SqlBuilder
+                .Union<PermissionGroup>(x=> x.Select(x=> new { x.ID, x.Name }))
+                .Union<UserGroup>(x=> x.Select(x=> new { ID = x.Id, x.Name }));
+
+            var commandQry = new StringBuilder();
+            commandQry.AppendLine("SELECT [permissiongroups].[ID], [permissiongroups].[Name] FROM [permissiongroups]");
+            commandQry.AppendLine("UNION ALL");
+            commandQry.Append("SELECT [UsersGroup].[Id] [ID], [UsersGroup].[Name] FROM [UsersGroup]");
+
+            Assert.AreEqual(commandQry.ToString(), qry.CommandText);
+            Assert.AreEqual(0, qry.CommandParameters.Count);
+        }
+
 
     }
 }

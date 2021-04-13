@@ -127,7 +127,7 @@ namespace Dapper.SqlBuilder.Resolver
             Builder.QueryByIsIn(GetTableName<T>(), fieldName, sqlQuery);
         }
 
-        public void QueryByNotIn<T>(Expression<Func<T, object>> expression, IEnumerable<object> values)
+        public void QueryByNotIn<T, T2>(Expression<Func<T, T2>> expression, IEnumerable<T2> values)
         {
             var fieldName = GetColumnName(expression);
             Builder.Not();

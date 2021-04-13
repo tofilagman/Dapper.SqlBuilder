@@ -137,7 +137,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             };
 
             var query = SqlBuilder.Insert(perm);
-            Assert.AreEqual(query.CommandText, "INSERT INTO [permissiongroups] ([Name], [ResourcePath], [UserType], [Date], [ID_Perm]) VALUES (@Param1, @Param2, @Param3, @Param4, @Param5)");
+            Assert.AreEqual("INSERT INTO [permissiongroups] ([Name], [ResourcePath], [UserType], [Date], [ID_Perm], [WorkCredit], [ntf]) VALUES (@Param1, @Param2, @Param3, @Param4, @Param5, @Param6, @Param7)", query.CommandText);
         }
 
         [Test , Ignore("Obsolete")]

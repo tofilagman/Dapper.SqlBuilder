@@ -142,6 +142,16 @@ namespace Dapper.SqlBuilder
             return builderCollection.Add(builder);
         }
 
+        public static SqlBuilderUnionCollection Union<T>(Func<SqlBuilder<T>, SqlBuilder<T>> builder = null, bool all = true)
+        {
+            return new SqlBuilderUnionCollection(all).Union(builder);
+        }
+
+        public static SqlBuilderUnionCollection Union<T, TResult>(this SqlBuilderUnionCollection builderCollection, SqlBuilder<T> builder)
+        {
+            return builderCollection.Add(builder);
+        }
+
         /// <summary>
         /// Prepares a select query to retrieve a single record of specified type <typeparamref name="T"/> satisfies given expression
         /// </summary>
@@ -267,7 +277,7 @@ namespace Dapper.SqlBuilder
             return this;
         }
 
-        public SqlBuilder<T> WhereNotIn(Expression<Func<T, object>> expression, IEnumerable<object> values)
+        public SqlBuilder<T> WhereNotIn<T2>(Expression<Func<T, T2>> expression, IEnumerable<T2> values)
         {
             Builder.And();
             Resolver.QueryByNotIn(expression, values);
@@ -480,13 +490,18 @@ namespace Dapper.SqlBuilder
         }
     }
 
-    public interface ISqlBuilder<T>
+    public interface ISqlBuilder<T> : ISqlBuilder
+    {
+
+    }
+
+    public interface ISqlBuilder
     {
         string CommandText { get; }
         IDictionary<string, object> CommandParameters { get; }
     }
 
-    public class SqlBuilderCollection
+    public class SqlBuilderCollection : ISqlBuilder
     {
         private readonly List<SqlBuilderBase> sqlBuilders;
 
@@ -535,7 +550,59 @@ namespace Dapper.SqlBuilder
         }
     }
 
-    public class SqlBuilderMultiple<T>
+    public class SqlBuilderUnionCollection : ISqlBuilder
+    {
+        private readonly List<SqlBuilderBase> sqlBuilders;
+        private readonly bool All;
+
+        public SqlBuilderUnionCollection(bool all)
+        {
+            sqlBuilders = new List<SqlBuilderBase>();
+            All = all;
+        }
+
+        public SqlBuilderUnionCollection Add<T>(SqlBuilder<T> builder)
+        {
+            sqlBuilders.Add(builder);
+            return this;
+        }
+
+        public SqlBuilderUnionCollection Union<T>(Func<SqlBuilder<T>, SqlBuilder<T>> builder = null)
+        {
+            var fg = new SqlBuilder<T>(LastCount);
+            var nbd = builder?.Invoke(fg);
+            return this.Add(nbd ?? fg);
+        }
+
+        public string CommandText
+        {
+            get
+            {
+                var sAll = All ? "ALL" : "";
+                return string.Join($"\r\nUNION { sAll }\r\n", sqlBuilders.Select(x => x.CommandText));
+            }
+        }
+
+        public IDictionary<string, object> CommandParameters
+        {
+            get
+            {
+                return sqlBuilders.SelectMany(x => x.CommandParameters).ToDictionary(x => x.Key, x => x.Value);
+            }
+        }
+
+        private int LastCount
+        {
+            get
+            {
+                if (sqlBuilders.Count == 0)
+                    return 0;
+                return sqlBuilders.Max(x => x.SqlBuilder.CurrentParamIndex);
+            }
+        }
+    }
+
+    public class SqlBuilderMultiple<T> : ISqlBuilder<T>
     {
         private readonly List<SqlBuilderBase> sqlBuilders;
         public SqlBuilderMultiple()
