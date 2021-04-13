@@ -95,9 +95,9 @@ namespace Dapper.SqlBuilder.Extensions
             return string.Join(' ', args);
         }
 
-        public static ICaseSql<T> Case<T>(this T value, Expression<Func<T, bool>> expression)
+        public static ICaseSql<T> Case<T>(this T value, Expression<Func<T, object>> expression)
         {
-            return new CaseSql<T>().When(expression);
+            return new CaseSql<T>(expression);
         }
 
         internal static string SafeValue<T>(this T obj, string specialFunc = null)

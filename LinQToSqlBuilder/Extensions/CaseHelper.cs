@@ -7,7 +7,13 @@ namespace Dapper.SqlBuilder.Extensions
 {
     public class CaseSql<T> : ICaseSql<T>
     {
-        public ICaseSql<T> Else(object value)
+        private readonly Expression<Func<T, object>> Comparer;
+        public CaseSql(Expression<Func<T, object>> comparer)
+        {
+            Comparer = comparer;
+        }
+
+        public ICaseSql<T> Else(Expression<Func<T, object>> returnExpr)
         {
             throw new NotImplementedException();
         }
@@ -17,12 +23,7 @@ namespace Dapper.SqlBuilder.Extensions
             throw new NotImplementedException();
         }
 
-        public ICaseSql<T> Then(object value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ICaseSql<T> When(Expression<Func<T, bool>> expression)
+        public ICaseSql<T> When(Expression<Func<T, object>> expression, Expression<Func<T, object>> returnExpr)
         {
             throw new NotImplementedException();
         }
@@ -30,9 +31,8 @@ namespace Dapper.SqlBuilder.Extensions
 
     public interface ICaseSql<T>
     {
-        ICaseSql<T> When(Expression<Func<T, bool>> expression);
-        ICaseSql<T> Then(object value);
-        ICaseSql<T> Else(object value);
+        ICaseSql<T> When(Expression<Func<T, object>> expression, Expression<Func<T, object>> returnExpr);  
+        ICaseSql<T> Else(Expression<Func<T, object>> returnExpr);
         TResult End<TResult>();
     }
 }

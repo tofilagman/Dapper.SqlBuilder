@@ -533,10 +533,10 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                 .LeftJoin<User>((x, y) => x.Id == y.Id && y.FirstName == "Jose")
                 .Result<PermissionGroup, UserGroup>((x, y) => new UserGroup
                 {
-                    CreatedBy = y.Case(z => z.Name == "ss").Then("sed")
-                                .When(z => z.ResourcePath != "nds").Then("swd")
-                                .When(z => z.ntf == null).Then(y.ResourcePath)
-                                .Else(y.Name).End<string>(),
+                    CreatedBy = y.Case(z => z.Name == "ss")
+                                .When(z => z.ResourcePath != "nds", x => "swd")
+                                .When(z => z.ntf == null, x => x.ResourcePath)
+                                .Else(x => x.Name).End<string>(),
                 });
 
             Assert.IsNotNull(qry.CommandText);
@@ -546,7 +546,26 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             cmd += "WHERE ([UsersGroup].[Id] = @Param1 OR [UsersGroup].[IsDeleted] = @Param2)";
 
             Assert.AreEqual(cmd, qry.CommandText);
-            Assert.AreEqual(3, qry.CommandParameters.Count);
+            Assert.AreEqual(3, qry.CommandParameters.Count); 
+        }
+
+        [Test]
+        public void CaseHelper()
+        {
+            var day = 4;
+            var qry = SqlBuilder
+                  .Select<DailySchedule>(x => new DailySchedule
+                  {
+                      Id = x.Case(x => day)
+                          .When(x => 1, x => x.ID_DailyScheduleSun)
+                          .When(x => 2, x => x.ID_DailyScheduleMon)
+                          .When(x => 3, x => x.ID_DailyScheduleTue)
+                          .When(x => 4, x => x.ID_DailyScheduleWed)
+                          .When(x => 5, x => x.ID_DailyScheduleThu)
+                          .When(x => 6, x => x.ID_DailyScheduleFri)
+                          .When(x => 7, x => x.ID_DailyScheduleSat)
+                          .End<int>()
+                  });
         }
 
         [Test]
