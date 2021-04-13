@@ -534,8 +534,8 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                 .Result<PermissionGroup, UserGroup>((x, y) => new UserGroup
                 {
                     CreatedBy = y.Case(z => z.Name == "ss").Then("sed")
-                                .When(z=> z.ResourcePath != "nds").Then("swd")
-                                .When(z=> z.ntf == null).Then(y.ResourcePath)
+                                .When(z => z.ResourcePath != "nds").Then("swd")
+                                .When(z => z.ntf == null).Then(y.ResourcePath)
                                 .Else(y.Name).End<string>(),
                 });
 
@@ -553,8 +553,8 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         public void UnionQuery()
         {
             var qry = SqlBuilder
-                .Union<PermissionGroup>(x => x.Select(x=> new { x.ID, x.Name }).Where(y => y.ID == 2))
-                .Union<UserGroup>(x => x.Select(x=> new { ID = x.Id, x.Name }).Where(y => y.IsDeleted == true));
+                .Union<PermissionGroup>(x => x.Select(x => new { x.ID, x.Name }).Where(y => y.ID == 2))
+                .Union<UserGroup>(x => x.Select(x => new { ID = x.Id, x.Name }).Where(y => y.IsDeleted == true));
 
             var commandQry = new StringBuilder();
             commandQry.AppendLine("SELECT [permissiongroups].[ID], [permissiongroups].[Name] FROM [permissiongroups] WHERE [permissiongroups].[ID] = @Param1");
@@ -563,14 +563,15 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
 
             Assert.AreEqual(commandQry.ToString(), qry.CommandText);
             Assert.AreEqual(2, qry.CommandParameters.Count);
+            Assert.AreEqual(typeof(SqlBuilderUnionCollection<PermissionGroup>), qry.GetType());
         }
 
         [Test]
         public void UnionQueryNoParam()
         {
             var qry = SqlBuilder
-                .Union<PermissionGroup>(x=> x.Select(x=> new { x.ID, x.Name }))
-                .Union<UserGroup>(x=> x.Select(x=> new { ID = x.Id, x.Name }));
+                .Union<PermissionGroup>(x => x.Select(x => new { x.ID, x.Name }))
+                .Union<UserGroup>(x => x.Select(x => new { ID = x.Id, x.Name }));
 
             var commandQry = new StringBuilder();
             commandQry.AppendLine("SELECT [permissiongroups].[ID], [permissiongroups].[Name] FROM [permissiongroups]");
@@ -579,6 +580,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
 
             Assert.AreEqual(commandQry.ToString(), qry.CommandText);
             Assert.AreEqual(0, qry.CommandParameters.Count);
+            Assert.AreEqual(typeof(SqlBuilderUnionCollection<PermissionGroup>), qry.GetType());
         }
 
 

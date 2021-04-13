@@ -55,15 +55,15 @@ namespace Dapper.SqlBuilder.Extensions
             return await con.QueryFirstOrDefaultAsync<T>(sqlBuilder.CommandText, sqlBuilder.CommandParameters, tran, timeOut);
         }
 
-        public static int Execute<T>(this ISqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
-        {
-            return con.Execute(sqlBuilder.CommandText, sqlBuilder.CommandParameters, tran, timeOut);
-        }
+        //public static int Execute<T>(this ISqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        //{
+        //    return con.Execute(sqlBuilder.CommandText, sqlBuilder.CommandParameters, tran, timeOut);
+        //}
 
-        public static async Task<int> ExecuteAsync<T>(this ISqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
-        {
-            return await con.ExecuteAsync(sqlBuilder.CommandText, sqlBuilder.CommandParameters, tran, timeOut);
-        }
+        //public static async Task<int> ExecuteAsync<T>(this ISqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        //{
+        //    return await con.ExecuteAsync(sqlBuilder.CommandText, sqlBuilder.CommandParameters, tran, timeOut);
+        //}
 
         public static int QueryIdentityInt<T>(this SqlBuilder<T> sqlBuilder, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
         {
@@ -99,22 +99,22 @@ namespace Dapper.SqlBuilder.Extensions
             return await con.QueryMultipleAsync(builderCollection.CommandText, builderCollection.CommandParameters, tran, timeOut);
         }
 
-        public static int Execute(this SqlBuilderCollection builderCollection, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        //public static int Execute(this SqlBuilderCollection builderCollection, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        //{
+        //    return con.Execute(builderCollection.CommandText, builderCollection.CommandParameters, tran, timeOut);
+        //}
+
+        //public static async Task<int> ExecuteAsync(this SqlBuilderCollection builderCollection, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        //{
+        //    return await con.ExecuteAsync(builderCollection.CommandText, builderCollection.CommandParameters, tran, timeOut);
+        //}
+
+        public static int Execute(this ISqlBuilder builderCollection, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
         {
             return con.Execute(builderCollection.CommandText, builderCollection.CommandParameters, tran, timeOut);
         }
 
-        public static async Task<int> ExecuteAsync(this SqlBuilderCollection builderCollection, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
-        {
-            return await con.ExecuteAsync(builderCollection.CommandText, builderCollection.CommandParameters, tran, timeOut);
-        }
-
-        public static int Execute<T>(this SqlBuilderMultiple<T> builderCollection, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
-        {
-            return con.Execute(builderCollection.CommandText, builderCollection.CommandParameters, tran, timeOut);
-        }
-
-        public static async Task<int> ExecuteAsync<T>(this SqlBuilderMultiple<T> builderCollection, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
+        public static async Task<int> ExecuteAsync (this ISqlBuilder builderCollection, IDbConnection con, IDbTransaction tran = null, int? timeOut = null)
         {
             return await con.ExecuteAsync(builderCollection.CommandText, builderCollection.CommandParameters, tran, timeOut);
         }

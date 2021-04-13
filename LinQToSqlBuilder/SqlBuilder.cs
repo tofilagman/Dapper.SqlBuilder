@@ -142,12 +142,12 @@ namespace Dapper.SqlBuilder
             return builderCollection.Add(builder);
         }
 
-        public static SqlBuilderUnionCollection Union<T>(Func<SqlBuilder<T>, SqlBuilder<T>> builder = null, bool all = true)
+        public static SqlBuilderUnionCollection<THeader> Union<THeader>(Func<SqlBuilder<THeader>, SqlBuilder<THeader>> builder = null, bool all = true)
         {
-            return new SqlBuilderUnionCollection(all).Union(builder);
+            return new SqlBuilderUnionCollection<THeader>(all).Union(builder);
         }
 
-        public static SqlBuilderUnionCollection Union<T, TResult>(this SqlBuilderUnionCollection builderCollection, SqlBuilder<T> builder)
+        public static SqlBuilderUnionCollection<THeader> Union<THeader, T, TResult>(this SqlBuilderUnionCollection<THeader> builderCollection, SqlBuilder<T> builder)
         {
             return builderCollection.Add(builder);
         }
@@ -550,7 +550,7 @@ namespace Dapper.SqlBuilder
         }
     }
 
-    public class SqlBuilderUnionCollection : ISqlBuilder
+    public class SqlBuilderUnionCollection<THeader> : ISqlBuilder
     {
         private readonly List<SqlBuilderBase> sqlBuilders;
         private readonly bool All;
@@ -561,13 +561,13 @@ namespace Dapper.SqlBuilder
             All = all;
         }
 
-        public SqlBuilderUnionCollection Add<T>(SqlBuilder<T> builder)
+        public SqlBuilderUnionCollection<THeader> Add<T>(SqlBuilder<T> builder)
         {
             sqlBuilders.Add(builder);
             return this;
         }
 
-        public SqlBuilderUnionCollection Union<T>(Func<SqlBuilder<T>, SqlBuilder<T>> builder = null)
+        public SqlBuilderUnionCollection<THeader> Union<T>(Func<SqlBuilder<T>, SqlBuilder<T>> builder = null)
         {
             var fg = new SqlBuilder<T>(LastCount);
             var nbd = builder?.Invoke(fg);
