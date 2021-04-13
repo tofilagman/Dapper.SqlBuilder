@@ -550,7 +550,7 @@ namespace Dapper.SqlBuilder
         }
     }
 
-    public class SqlBuilderUnionCollection<THeader> : ISqlBuilder
+    public class SqlBuilderUnionCollection<THeader> : ISqlBuilder<THeader>
     {
         private readonly List<SqlBuilderBase> sqlBuilders;
         private readonly bool All;
