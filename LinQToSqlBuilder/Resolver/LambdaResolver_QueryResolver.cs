@@ -169,9 +169,9 @@ namespace Dapper.SqlBuilder.Resolver
                             var value = ResolveValue((dynamic)memberExpr.Member, null);
                             return value;
                         }
-
+                         
                         var obj = GetExpressionValue(memberExpr.Expression);
-                        return ResolveValue((dynamic)memberExpr.Member, obj);
+                        return ResolveValue((dynamic)memberExpr.Member, obj); 
                     }
                     throw new ArgumentException("Invalid expression");
                 case ExpressionType.Convert:
@@ -190,6 +190,15 @@ namespace Dapper.SqlBuilder.Resolver
                     var notExpressionType = expression.GetType();
                     throw new
                         ArgumentException($"Expected some expression as {nameof(UnaryExpression)} but received {notExpressionType.FullName}");
+                case ExpressionType.Lambda:
+                    var lmbda = (expression as LambdaExpression);
+                    return GetExpressionValue(lmbda.Body);
+                case ExpressionType.Quote:
+                    var nqte = (expression as UnaryExpression);
+                    return GetExpressionValue(nqte.Operand);
+                case ExpressionType.Parameter:
+                    var prmtr = (expression as ParameterExpression);
+                    return prmtr.Name;
                 default:
                     throw new ArgumentException("Expected constant expression");
             }

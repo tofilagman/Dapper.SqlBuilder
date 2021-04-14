@@ -31,6 +31,16 @@ namespace Dapper.SqlBuilder.Builder
                 WhereConditions.Add(" OR ");
         }
 
+        public void GreaterThan(bool hasEqual)
+        {
+            WhereConditions.Add($" >{ (hasEqual ? "=" : "") } ");
+        }
+
+        public void LessThan(bool hasEqual)
+        {
+            WhereConditions.Add($" <{ (hasEqual ? "=" : "") } ");
+        }
+
         public void Not()
         {
             WhereConditions.Add(" NOT ");
@@ -46,6 +56,11 @@ namespace Dapper.SqlBuilder.Builder
 
             WhereConditions.Add(newCondition);
             AddParameter(paramId, fieldValue);
+        }
+
+        public void QueryByField(string tableName, string fieldName)
+        {
+            WhereConditions.Add(Adapter.Field(tableName, fieldName));
         }
 
         public void QueryByFieldLike(string tableName, string fieldName, string fieldValue)
@@ -120,6 +135,13 @@ namespace Dapper.SqlBuilder.Builder
 
             var newCondition = $"({ Adapter.Field(tableName, fieldName) } { (not ? "NOT " : "") }BETWEEN { pStart } AND { pEnd })";
             WhereConditions.Add(newCondition);
+        }
+
+        public void QueryByConstant(object fieldValue)
+        {
+            var paramId = NextParamId();
+            WhereConditions.Add(Adapter.Parameter(paramId));
+            AddParameter(paramId, fieldValue);
         }
     }
 }

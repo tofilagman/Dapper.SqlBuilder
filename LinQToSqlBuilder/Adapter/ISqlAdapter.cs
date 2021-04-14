@@ -46,7 +46,8 @@ namespace Dapper.SqlBuilder.Adapter
         Insert,
         InsertFrom,
         Update,
-        Delete
+        Delete,
+        Case
     }
 
     enum JoinType

@@ -9,6 +9,13 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests.Entities
     {
         [Key]
         public int Id { get; set; }
+
+        public string Name { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public DateTime DateCreated { get; set; }
+
         public int ID_DailyScheduleSun { get; set; }
         public int ID_DailyScheduleMon { get; set; }
         public int ID_DailyScheduleTue { get; set; }

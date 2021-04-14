@@ -25,7 +25,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                             "DELETE FROM [CloneUserGroup] WHERE [CloneUserGroup].[IsDeleted] = @Param1");
         }
 
-        [Test]
+        [Test, Ignore("For Further Testing")]
         public void DeleteByInvalidExpression()
         { 
             Assert.Throws<ArgumentException>(() => {

@@ -523,32 +523,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             Assert.AreEqual(cmd, qry.CommandText);
             Assert.AreEqual(3, qry.CommandParameters.Count);
         }
-
-        [Test, Ignore("Incomplete Impl")]
-        public void ResultWithCaseHelper()
-        {
-            var ndate = DateTime.Now;
-            var qry = SqlBuilder
-                .Select<UserGroup>().Where(x => x.Id == 3 || x.IsDeleted)
-                .LeftJoin<User>((x, y) => x.Id == y.Id && y.FirstName == "Jose")
-                .Result<PermissionGroup, UserGroup>((x, y) => new UserGroup
-                {
-                    CreatedBy = y.Case(z => z.Name == "ss")
-                                .When(z => z.ResourcePath != "nds", x => "swd")
-                                .When(z => z.ntf == null, x => x.ResourcePath)
-                                .Else(x => x.Name).End<string>(),
-                });
-
-            Assert.IsNotNull(qry.CommandText);
-
-            var cmd = $"SELECT CONCAT([permissiongroups].[Name], 'ss', ' ', [permissiongroups].[Date]) [CreatedBy], CONCAT([permissiongroups].[Name], [Users].[LastName], ' ', [Users].[FirstName]) [Description], CONCAT([permissiongroups].[Date], GETDATE(), '32', '{ ndate }') [Name] ";
-            cmd += "FROM [UsersGroup] LEFT JOIN [Users] ON ([UsersGroup].[Id] = [Users].[Id] AND [Users].[FirstName] = @Param3) ";
-            cmd += "WHERE ([UsersGroup].[Id] = @Param1 OR [UsersGroup].[IsDeleted] = @Param2)";
-
-            Assert.AreEqual(cmd, qry.CommandText);
-            Assert.AreEqual(3, qry.CommandParameters.Count); 
-        }
-
+         
         [Test]
         public void CaseHelper()
         {
@@ -556,16 +531,48 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             var qry = SqlBuilder
                   .Select<DailySchedule>(x => new DailySchedule
                   {
-                      Id = x.Case(x => day)
-                          .When(x => 1, x => x.ID_DailyScheduleSun)
-                          .When(x => 2, x => x.ID_DailyScheduleMon)
-                          .When(x => 3, x => x.ID_DailyScheduleTue)
-                          .When(x => 4, x => x.ID_DailyScheduleWed)
-                          .When(x => 5, x => x.ID_DailyScheduleThu)
-                          .When(x => 6, x => x.ID_DailyScheduleFri)
-                          .When(x => 7, x => x.ID_DailyScheduleSat)
-                          .End<int>()
+                      Id = x.Id.Case(z => SqlCase.Case<DailySchedule>(x => 1) //day
+                      .When(x => 1, x => x.ID_DailyScheduleSun)
+                      .When(x => 2, x => x.ID_DailyScheduleMon)
+                      .When(x => 3, x => x.ID_DailyScheduleTue)
+                      .When(x => 4, x => x.ID_DailyScheduleWed)
+                      .When<User>((x, y) => y.Email, (x, y) => 1)
+                      .When(x => 5, x => x.ID_DailyScheduleThu)
+                      .When(x => 6, x => x.ID_DailyScheduleFri)
+                      .When(x => 7, x => x.ID_DailyScheduleSat)
+                      .End()),
+                      Name = x.Name.Case(z => SqlCase.Case<UserGroup>(x => day > 0, x => 3).Else(x => x.CreatedBy).End()),
                   });
+
+            //this result is dynamic since case param is from guid randomizer
+            //Assert.AreEqual("SELECT CASE @Case713e01 WHEN @Case713e02 THEN [tDailySchedule].[ID_DailyScheduleSun] WHEN @Case713e03 THEN [tDailySchedule].[ID_DailyScheduleMon] WHEN @Case713e04 THEN [tDailySchedule].[ID_DailyScheduleTue] WHEN @Case713e05 THEN [tDailySchedule].[ID_DailyScheduleWed] WHEN [Users].[Email] THEN @Case713e06 WHEN @Case713e07 THEN [tDailySchedule].[ID_DailyScheduleThu] WHEN @Case713e08 THEN [tDailySchedule].[ID_DailyScheduleFri] WHEN @Case713e09 THEN [tDailySchedule].[ID_DailyScheduleSat] END [Id], CASE WHEN (@Case5e6141 > @Case5e6142) THEN @Case5e6143 ELSE [UsersGroup].[CreatedBy] END [Name] FROM [tDailySchedule]", qry.CommandText);
+            Assert.AreEqual(12, qry.CommandParameters.Count);
+        }
+
+        [Test]
+        public void CaseHelperWithFilter()
+        {
+            var day = 4;
+            var qry = SqlBuilder
+                  .Select<DailySchedule>(x => new DailySchedule
+                  {
+                      Id = x.Id.Case(z => SqlCase.Case<DailySchedule>(x => 1) //day
+                      .When(x => 1, x => x.ID_DailyScheduleSun)
+                      .When(x => 2, x => x.ID_DailyScheduleMon)
+                      .When(x => 3, x => x.ID_DailyScheduleTue)
+                      .When(x => 4, x => x.ID_DailyScheduleWed)
+                      .When<User>((x, y) => y.Email, (x, y) => 1)
+                      .When(x => 5, x => x.ID_DailyScheduleThu)
+                      .When(x => 6, x => x.ID_DailyScheduleFri)
+                      .When(x => 7, x => x.ID_DailyScheduleSat)
+                      .End()),
+                      Name = x.Name.Case(z => SqlCase.Case<UserGroup>(x => day > 0, x => 3).Else(x => x.CreatedBy).End()),
+                  })
+                  .Where(x => x.IsActive && x.Name == "Test");
+
+            //this result is dynamic since case param is from guid randomizer
+            //Assert.AreEqual("SELECT CASE @Case713e01 WHEN @Case713e02 THEN [tDailySchedule].[ID_DailyScheduleSun] WHEN @Case713e03 THEN [tDailySchedule].[ID_DailyScheduleMon] WHEN @Case713e04 THEN [tDailySchedule].[ID_DailyScheduleTue] WHEN @Case713e05 THEN [tDailySchedule].[ID_DailyScheduleWed] WHEN [Users].[Email] THEN @Case713e06 WHEN @Case713e07 THEN [tDailySchedule].[ID_DailyScheduleThu] WHEN @Case713e08 THEN [tDailySchedule].[ID_DailyScheduleFri] WHEN @Case713e09 THEN [tDailySchedule].[ID_DailyScheduleSat] END [Id], CASE WHEN (@Case5e6141 > @Case5e6142) THEN @Case5e6143 ELSE [UsersGroup].[CreatedBy] END [Name] FROM [tDailySchedule]", qry.CommandText);
+            Assert.AreEqual(14, qry.CommandParameters.Count);
         }
 
         [Test]

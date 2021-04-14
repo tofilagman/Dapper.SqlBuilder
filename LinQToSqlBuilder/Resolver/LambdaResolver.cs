@@ -123,12 +123,19 @@ namespace Dapper.SqlBuilder.Resolver
                     return GetMemberExpression((expression as UnaryExpression)?.Operand);
                 case ExpressionType.Lambda:
                     return GetMemberExpression((expression as LambdaExpression).Body);
-               
+                case ExpressionType.Constant:
+                    var fk = new FakeObject { Data = (expression as ConstantExpression).Value };
+                    return Expression.PropertyOrField(Expression.Constant(fk), nameof(FakeObject.Data));
             }
 
             throw new ArgumentException("Member expression expected");
         }
 
         #endregion
+    }
+
+    class FakeObject
+    {
+        public object Data { get; set; }
     }
 }
