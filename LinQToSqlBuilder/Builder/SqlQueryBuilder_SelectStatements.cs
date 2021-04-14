@@ -143,6 +143,13 @@ namespace Dapper.SqlBuilder.Builder
             SelectionList.Add(selectionString);
         }
 
+        public void SelectCase(string commandText, string alias)
+        {
+            if (!commandText.EndsWith("END"))
+                throw new Exception($"{alias}: Case command is not completed");
+            SelectionList.Add($"{ commandText } {Adapter.Alias(alias)}");
+        }
+
         public void GroupBy(string tableName, string fieldName)
         {
             GroupByList.Add(Adapter.Field(tableName, fieldName));

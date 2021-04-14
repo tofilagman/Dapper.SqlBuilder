@@ -24,17 +24,6 @@ namespace Dapper.SqlBuilder.Resolver
             Builder.Join(GetTableName<T2>(), rebuilder.Builder.WhereCommandText, joinType);
         }
 
-        [Obsolete]
-        public void Join<T1, T2, TKey>(Expression<Func<T1, TKey>> leftExpression, Expression<Func<T1, TKey>> rightExpression, JoinType joinType)
-        {
-            Join<T1, T2>(GetMemberExpression(leftExpression.Body), GetMemberExpression(rightExpression.Body), joinType);
-        }
-
-        [Obsolete]
-        public void Join<T1, T2>(MemberExpression leftExpression, MemberExpression rightExpression, JoinType joinType)
-        {
-            Builder.Join(GetTableName<T1>(), GetTableName<T2>(), GetColumnName(leftExpression), GetColumnName(rightExpression), joinType);
-        }
 
         public void OrderBy<T>(Expression<Func<T, object>> expression, bool desc = false)
         {
@@ -63,9 +52,9 @@ namespace Dapper.SqlBuilder.Resolver
                 case ExpressionType.MemberAccess:
                     Select<T>(GetMemberExpression(expression));
                     break;
-                case ExpressionType.New: 
+                case ExpressionType.New:
                     var nxprs = (expression as NewExpression);
-                   
+
                     for (var i = 0; i < nxprs.Arguments.Count; i++)
                     {
                         var expr = nxprs.Arguments[i];
@@ -183,7 +172,7 @@ namespace Dapper.SqlBuilder.Resolver
             GroupBy<T>(GetMemberExpression(expression.Body));
         }
 
-        private void GroupBy<T>(MemberExpression expression)
+        private void GroupBy<T>(Expression expression)
         {
             var fieldName = GetColumnName(GetMemberExpression(expression));
             Builder.GroupBy(GetTableName<T>(), fieldName);
@@ -266,6 +255,31 @@ namespace Dapper.SqlBuilder.Resolver
                 }
             }
 
+            if (mce.Method.DeclaringType.Name == typeof(SqlCase).Name)
+            {
+                var column = GetColumnName(mce);
+                if (mce.Arguments[1] is UnaryExpression me)
+                {
+                    if (me.Operand is LambdaExpression le)
+                    {
+                        var nls = new List<object>();
+                        foreach (var gd in le.Parameters)
+                        {
+                            nls.Add(null);
+                        }
+
+                        var vad = le.Compile().DynamicInvoke(nls.ToArray());
+                        var npc = vad as ISqlBuilder;
+
+                        foreach (var np in npc.CommandParameters)
+                            Builder.Parameters.Add(np);
+
+                        Builder.SelectCase(npc.CommandText, alias);
+                        return;
+                    }
+                } 
+            }
+
             throw new Exception("Use As<> extension to map type differences");
         }
 
@@ -280,5 +294,6 @@ namespace Dapper.SqlBuilder.Resolver
         {
             return me.Member.Name == "Now" && me.Type == typeof(DateTime);
         }
+
     }
 }

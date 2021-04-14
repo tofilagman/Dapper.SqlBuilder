@@ -53,12 +53,15 @@ namespace Dapper.SqlBuilder.Resolver
 
         void BuildSql(ValueNode valueNode)
         {
-            throw new ArgumentException("Invalid Expression");
+            Builder.QueryByConstant(valueNode.Value);
         }
 
         void BuildSql(MemberNode memberNode)
         {
-            Builder.QueryByField(memberNode.TableName, memberNode.FieldName, _operationDictionary[ExpressionType.Equal], true);
+            if (Builder.Operation == Adapter.SqlOperations.Case)
+                Builder.QueryByField(memberNode.TableName, memberNode.FieldName);
+            else
+                Builder.QueryByField(memberNode.TableName, memberNode.FieldName, _operationDictionary[ExpressionType.Equal], true);
         }
 
         void BuildSql(SingleOperationNode node)
@@ -152,6 +155,18 @@ namespace Dapper.SqlBuilder.Resolver
                 case ExpressionType.Or:
                 case ExpressionType.OrElse:
                     Builder.Or();
+                    break;
+                case ExpressionType.GreaterThan:
+                    Builder.GreaterThan(false);
+                    break;
+                case ExpressionType.GreaterThanOrEqual:
+                    Builder.GreaterThan(true);
+                    break;
+                case ExpressionType.LessThan:
+                    Builder.LessThan(false);
+                    break;
+                case ExpressionType.LessThanOrEqual:
+                    Builder.LessThan(true);
                     break;
                 default:
                     throw new ArgumentException(string.Format("Unrecognized binary expression operation '{0}'", op.ToString()));

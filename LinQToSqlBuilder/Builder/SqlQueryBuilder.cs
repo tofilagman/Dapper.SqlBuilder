@@ -18,7 +18,7 @@ namespace Dapper.SqlBuilder.Builder
 
         internal SqlOperations Operation { get; set; } = SqlOperations.Query;
 
-        private const string ParameterPrefix = "Param";
+        public string ParameterPrefix = "Param";
 
         private readonly List<string> _updateValues = new List<string>();
 
@@ -114,6 +114,8 @@ namespace Dapper.SqlBuilder.Builder
                         return Adapter.UpdateCommand(UpdateValues, Source, Conditions);
                     case SqlOperations.Delete:
                         return Adapter.DeleteCommand(Source, Conditions);
+                    case SqlOperations.Case:
+                        return string.Join("", WhereConditions);
                     default:
                         return GenerateQueryCommand();
                 }
@@ -144,7 +146,7 @@ namespace Dapper.SqlBuilder.Builder
             Parameters = new ExpandoObject();
             CurrentParamIndex = paramCountIndex;
         }
-
+         
         #region helpers
         private string NextParamId()
         {
