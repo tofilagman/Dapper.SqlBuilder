@@ -122,6 +122,23 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         }
 
         [Test]
+        public void MySqlLimit()
+        {
+            SqlBuilder.SetAdapter(new MySqlAdapter());
+
+            var userEmail = "user@domain1.com";
+
+            var query = SqlBuilder.SelectSingle<User>()
+                                  .Where(user => user.Email == userEmail);
+
+            Assert.AreEqual("SELECT Users.* FROM Users WHERE Users.Email = @Param1 LIMIT 1",
+                            query.CommandText);
+
+            Assert.AreEqual(userEmail,
+                            query.CommandParameters.First().Value);
+        }
+
+        [Test]
         public void FindByFieldValueLike()
         {
             const string searchTerm = "domain.com";
@@ -609,6 +626,44 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             Assert.AreEqual(typeof(SqlBuilderUnionCollection<PermissionGroup>), qry.GetType());
         }
 
+        [Test]
+        public void ResultHelper()
+        {
+            var qry = SqlBuilder
+               .Select<UserGroup>()  
+               .Result(x => new 
+               {
+                   Name = x.Description
+               });
 
+            Assert.AreEqual("SELECT [UsersGroup].[Description] [Name] FROM [UsersGroup]", qry.CommandText);
+        }
+
+        [Test]
+        public void ResultWithCaseHelper()
+        {
+            var qry = SqlBuilder
+               .Select<UserGroup>()
+               .Result(x => new
+               {
+                   Name = x.Name.Case(z => SqlCase.Case<UserGroup>(y => y.Id > 3, y => 3).Else(x => x.CreatedBy).End())
+               });
+
+            Assert.AreEqual(124, qry.CommandText.Length);
+            Assert.AreEqual(2, qry.CommandParameters.Count);
+        }
+
+        [Test]
+        public void ScalarResultHelper()
+        {
+            var qry = SqlBuilder
+               .Select<UserGroup>()
+               .ScalarResult<int>(x => new
+               {
+                   ID = x.Id
+               });
+
+            Assert.AreEqual("SELECT [UsersGroup].[Id] [ID] FROM [UsersGroup]", qry.CommandText);
+        }
     }
 }

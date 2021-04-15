@@ -9,13 +9,13 @@
     <Company>Dapper.SqlBuilder.Unofficial.Extensions</Company>
     <Product>Dapper.SqlBuilder.Unofficial.Extensions</Product>
     <RepositoryUrl>https://github.com/tofilagman/Dapper.SqlBuilder</RepositoryUrl>
-    <Version>1.0.23</Version>
+    <Version>1.0.25</Version>
     <Description>Dapper Chain Extension</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.78" />
-    <PackageReference Include="Dapper.SqlBuilder.Unofficial" Version="1.0.25" />
+    <PackageReference Include="Dapper.SqlBuilder.Unofficial" Version="1.0.27" />
     <PackageReference Include="microsoft.bcl.asyncinterfaces" Version="5.0.0" />
     <PackageReference Include="z.Data.Standard" Version="1.2.14" />
   </ItemGroup>

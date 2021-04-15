@@ -60,7 +60,12 @@ namespace Dapper.SqlBuilder.Resolver
                         var expr = nxprs.Arguments[i];
                         var mem = nxprs.Members[i];
 
-                        Select<T>((MemberExpression)expr, mem.Name);
+                        if (expr is MethodCallExpression mce)
+                        {
+                            SelectWithSqlFunctionCall(mce, mem.Name);
+                        }
+                        else
+                            Select<T>((MemberExpression)expr, mem.Name);
                     }
 
                     break;
@@ -277,7 +282,7 @@ namespace Dapper.SqlBuilder.Resolver
                         Builder.SelectCase(npc.CommandText, alias);
                         return;
                     }
-                } 
+                }
             }
 
             throw new Exception("Use As<> extension to map type differences");

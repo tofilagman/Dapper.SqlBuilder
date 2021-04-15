@@ -9,6 +9,18 @@ namespace Dapper.SqlBuilder
 {
     public partial class SqlBuilder<T>
     {
+        public ISqlBuilder<TResult> ScalarResult<TResult>(Expression<Func<T, dynamic>> expression)
+        {
+            Resolver.Select(expression);
+            return new SqlBuilder<TResult>(this.Builder, this.Resolver);
+        }
+
+        public ISqlBuilder<TResult> Result<TResult>(Expression<Func<T, TResult>> expression)
+        {
+            Resolver.Select(expression);
+            return new SqlBuilder<TResult>(this.Builder, this.Resolver);
+        }
+
         public ISqlBuilder<TResult> Result<T2, TResult>(Expression<Func<T, T2, TResult>> expression)
         {
             Resolver.Select(expression);
