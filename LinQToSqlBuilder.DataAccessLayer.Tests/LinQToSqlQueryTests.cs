@@ -609,6 +609,44 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             Assert.AreEqual(typeof(SqlBuilderUnionCollection<PermissionGroup>), qry.GetType());
         }
 
+        [Test]
+        public void ResultHelper()
+        {
+            var qry = SqlBuilder
+               .Select<UserGroup>()  
+               .Result(x => new 
+               {
+                   Name = x.Description
+               });
 
+            Assert.AreEqual("SELECT [UsersGroup].[Description] [Name] FROM [UsersGroup]", qry.CommandText);
+        }
+
+        [Test]
+        public void ResultWithCaseHelper()
+        {
+            var qry = SqlBuilder
+               .Select<UserGroup>()
+               .Result(x => new
+               {
+                   Name = x.Name.Case(z => SqlCase.Case<UserGroup>(y => y.Id > 3, y => 3).Else(x => x.CreatedBy).End())
+               });
+
+            Assert.AreEqual(124, qry.CommandText.Length);
+            Assert.AreEqual(2, qry.CommandParameters.Count);
+        }
+
+        [Test]
+        public void ScalarResultHelper()
+        {
+            var qry = SqlBuilder
+               .Select<UserGroup>()
+               .ScalarResult<int>(x => new
+               {
+                   ID = x.Id
+               });
+
+            Assert.AreEqual("SELECT [UsersGroup].[Id] [ID] FROM [UsersGroup]", qry.CommandText);
+        }
     }
 }
