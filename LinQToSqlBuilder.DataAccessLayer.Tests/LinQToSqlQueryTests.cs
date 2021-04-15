@@ -122,6 +122,23 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         }
 
         [Test]
+        public void MySqlLimit()
+        {
+            SqlBuilder.SetAdapter(new MySqlAdapter());
+
+            var userEmail = "user@domain1.com";
+
+            var query = SqlBuilder.SelectSingle<User>()
+                                  .Where(user => user.Email == userEmail);
+
+            Assert.AreEqual("SELECT Users.* FROM Users WHERE Users.Email = @Param1 LIMIT 1",
+                            query.CommandText);
+
+            Assert.AreEqual(userEmail,
+                            query.CommandParameters.First().Value);
+        }
+
+        [Test]
         public void FindByFieldValueLike()
         {
             const string searchTerm = "domain.com";
