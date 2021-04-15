@@ -1,6 +1,6 @@
 ﻿namespace Dapper.SqlBuilder.Adapter
 {
-   public class SqlServerAdapter : SqlServerAdapterBase, ISqlAdapter
+    public class SqlServerAdapter : SqlServerAdapterBase, ISqlAdapter
     {
         public string Concat()
         {
@@ -22,8 +22,8 @@
             return "ISNULL";
         }
 
-        public string QueryStringPage(string source,   string selection, string conditions, string order,
-                                      int    pageSize, int    pageIndex = 0)
+        public string QueryStringPage(string selection, string source, string conditions, string order,
+                                      int pageSize, int pageIndex = 0)
         {
             if (pageIndex == 0)
                 return $"SELECT TOP({pageSize}) {selection} FROM {source} {conditions} {order}";

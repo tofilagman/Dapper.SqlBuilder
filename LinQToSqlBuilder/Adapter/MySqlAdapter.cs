@@ -24,9 +24,9 @@ namespace Dapper.SqlBuilder.Adapter
 
         public string QueryStringPage(string selection, string source, string conditions, string order, int pageSize, int pageIndex = 0)
         {
-            if (pageIndex == 0)
-                return $"SELECT {selection} FROM {source} {conditions} {order}";
-
+            if (pageIndex == 0 && pageSize > 0)
+                return $"SELECT {selection} FROM {source} {conditions} {order} LIMIT {pageSize}";
+             
             return
                 $@"SELECT {selection} FROM {source} {conditions} {order}  LIMIT {pageIndex}, {pageSize}"; // OFFSET {pageSize * pageIndex} ROWS FETCH NEXT {pageSize} ROWS ONLY";
         }
