@@ -24,6 +24,8 @@ namespace Dapper.SqlBuilder.Adapter
 
         string Table(string tableName);
 
+        string Table(string tableName, string alias);
+
         string Field(string fieldName);
 
         string Field(string tableName, string fieldName);

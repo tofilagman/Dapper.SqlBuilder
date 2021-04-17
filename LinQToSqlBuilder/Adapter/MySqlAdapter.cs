@@ -36,6 +36,11 @@ namespace Dapper.SqlBuilder.Adapter
             return tableName;
         }
 
+        public string Table(string tableName, string alias)
+        {
+            return $"{tableName} {alias}";
+        }
+
         public override string InsertCommand(string target, List<Dictionary<string, object>> values, string output = "")
         {
             var fieldsToInsert = values.First()

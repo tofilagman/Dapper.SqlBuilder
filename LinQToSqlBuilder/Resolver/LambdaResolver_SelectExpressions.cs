@@ -156,18 +156,47 @@ namespace Dapper.SqlBuilder.Resolver
             throw new Exception("Cant define a table from an expression");
         }
 
-        public void SelectWithFunction<T>(Expression<Func<T, object>> expression, SelectFunction selectFunction)
+        public void SelectWithFunction<T>(Expression<Func<T, object>> expression, SelectFunctionType selectFunction)
         {
             SelectWithFunction<T>(expression.Body, selectFunction);
         }
 
-        private void SelectWithFunction<T>(Expression expression, SelectFunction selectFunction)
+        public void SelectWithFunction<T>(string functionStatement, Expression<Func<T, object>> expression, params object[] args)
+        {
+            SelectWithFunction<T>(functionStatement, expression?.Body, args);
+        }
+
+        private void SelectWithFunction<T>(Expression expression, SelectFunctionType selectFunction)
         {
             var fieldName = GetColumnName(GetMemberExpression(expression));
             Builder.Select(GetTableName<T>(), fieldName, selectFunction);
         }
 
-        public void SelectWithFunction<T>(SelectFunction selectFunction)
+        private void SelectWithFunction<T>(string functionStatement, Expression expression, object[] args = null)
+        {
+            var prms = Builder.ParseParameter(functionStatement);
+
+            if (args == null && prms.Count > 0)
+                throw new InvalidOperationException("Function Statement requires a parameter");
+
+            if (prms.Count != args.Length)
+                throw new InvalidOperationException("Function Statement parameters does not match the parameter specified");
+
+            for (var i = 0; i < prms.Count; i++)
+                Builder.AddParameter(prms[i], args[i]);
+
+            if (expression != null)
+            {
+                var fieldName = GetColumnName(GetMemberExpression(expression));
+                Builder.Select(GetTableName<T>(), fieldName);
+            }
+            else
+            {
+                Builder.Select(GetTableName<T>());
+            }
+        }
+
+        public void SelectWithFunction<T>(SelectFunctionType selectFunction)
         {
             Builder.Select(selectFunction);
         }

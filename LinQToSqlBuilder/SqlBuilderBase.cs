@@ -31,6 +31,14 @@ namespace Dapper.SqlBuilder
 
         public string[] SplitColumns => Builder.SplitColumns.ToArray();
 
+        public int CurrentParamIndex
+        {
+            get
+            {
+                return Builder.CurrentParamIndex;
+            }
+        }
+
         public static void SetAdapter(ISqlAdapter adapter)
         {
             DefaultAdapter = adapter ?? new SqlServerAdapter();

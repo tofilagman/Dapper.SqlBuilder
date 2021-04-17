@@ -126,6 +126,8 @@ namespace Dapper.SqlBuilder.Resolver
                 case ExpressionType.Constant:
                     var fk = new FakeObject { Data = (expression as ConstantExpression).Value };
                     return Expression.PropertyOrField(Expression.Constant(fk), nameof(FakeObject.Data));
+                //case ExpressionType.New:
+                //    return GetMemberExpression((expression as NewExpression).Members);
             }
 
             throw new ArgumentException("Member expression expected");

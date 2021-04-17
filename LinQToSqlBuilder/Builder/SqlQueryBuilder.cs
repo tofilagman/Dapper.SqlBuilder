@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Dapper.SqlBuilder.Adapter;
 
 namespace Dapper.SqlBuilder.Builder
@@ -52,6 +53,13 @@ namespace Dapper.SqlBuilder.Builder
         private int? _pageSize;
 
         private int _pageIndex;
+
+        private bool _ignoreTableBrackets = false;
+
+        public void IgnoreTableBracket()
+        {
+            _ignoreTableBrackets = true;
+        }
 
         public int CurrentParamIndex { get; set; }
 
@@ -136,17 +144,24 @@ namespace Dapper.SqlBuilder.Builder
             }
         }
 
-        internal SqlQueryBuilder(string tableName, ISqlAdapter adapter, int paramCountIndex = 0)
+        internal SqlQueryBuilder(string tableName, ISqlAdapter adapter, int paramCountIndex = 0) : this(tableName, tableName, adapter, paramCountIndex)
+        {
+        }
+
+        internal SqlQueryBuilder(string tableName, string alias, ISqlAdapter adapter, int paramCountIndex = 0)
         {
             if (adapter == null)
                 throw new InvalidOperationException("Set Adapter first, eg: SqlBuilder.SetAdapter(new SqlServerAdapter())");
 
-            TableNames.Add(tableName);
+            if (tableName != alias)
+                TableNames.Add(adapter.Table(tableName, alias));
+            else
+                TableNames.Add(tableName);
             Adapter = adapter;
             Parameters = new ExpandoObject();
             CurrentParamIndex = paramCountIndex;
         }
-         
+
         #region helpers
         private string NextParamId()
         {
@@ -154,11 +169,23 @@ namespace Dapper.SqlBuilder.Builder
             return ParameterPrefix + CurrentParamIndex.ToString(CultureInfo.InvariantCulture);
         }
 
-        private void AddParameter(string key, object value)
+        internal void AddParameter(string key, object value)
         {
             if (!Parameters.ContainsKey(key))
                 Parameters.Add(key, value);
         }
+
+        public List<string> ParseParameter(string Command, char Parameter = '@')
+        {
+            var k = new List<string>();
+
+            //dont use distinct by to prevent reordering
+            foreach (var x in Regex.Matches(Command, $@"\{ Parameter }\b(\w+)\b", RegexOptions.IgnoreCase).Cast<Match>().Select(x => x.Value))
+                if (!k.Contains(x))
+                    k.Add(x);
+            return k;
+        }
+
         #endregion
     }
 }

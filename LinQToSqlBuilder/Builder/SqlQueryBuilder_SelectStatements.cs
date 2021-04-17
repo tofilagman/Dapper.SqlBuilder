@@ -120,13 +120,20 @@ namespace Dapper.SqlBuilder.Builder
                 SelectionList.Add($"{ Adapter.Concat() }({ Adapter.Field(tableName, fieldName) }, { string.Join(", ", values) }) { Adapter.Alias(alias) }");
         }
 
-        public void Select(string tableName, string fieldName, SelectFunction selectFunction)
+        public void Select(string tableName, string fieldName, SelectFunctionType selectFunction)
         {
-            var selectionString = $"{selectFunction}({Adapter.Field(tableName, fieldName)})";
+            var selectionString = string.Empty;
+            if (selectFunction == SelectFunctionType.CUSTOM)
+            {
+                selectionString = Adapter.Field(fieldName);
+            }
+            else
+                selectionString = $"{selectFunction}({Adapter.Field(tableName, fieldName)})";
+
             SelectionList.Add(selectionString);
         }
 
-        public void Select(string tableName, string fieldName, string alias, SelectFunction selectFunction)
+        public void Select(string tableName, string fieldName, string alias, SelectFunctionType selectFunction)
         {
             if (string.IsNullOrEmpty(alias) || fieldName == alias)
                 Select(tableName, fieldName, selectFunction);
@@ -137,9 +144,14 @@ namespace Dapper.SqlBuilder.Builder
             }
         }
 
-        public void Select(SelectFunction selectFunction)
+        public void Select(SelectFunctionType selectFunction)
         {
-            var selectionString = $"{selectFunction}(*)";
+            var selectionString = string.Empty;
+            if (selectFunction == SelectFunctionType.CUSTOM)
+                selectionString = $"*";
+            else
+                selectionString = $"{selectFunction}(*)";
+
             SelectionList.Add(selectionString);
         }
 

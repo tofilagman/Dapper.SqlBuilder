@@ -96,7 +96,7 @@ namespace Dapper.SqlBuilder
         }
     }
 
-    public interface ISqlCase<THeader> : ISqlBuilder<THeader>
+    public interface ISqlCase<THeader> : ISqlBuilderResult<THeader>
     {
         ISqlCase<THeader> Case(Expression<Func<THeader, object>> expression);
         ISqlCase<THeader> When(Expression<Func<THeader, object>> expression, Expression<Func<THeader, object>> returnExpr);

@@ -22,7 +22,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
 
 
             Assert.AreEqual(query.CommandText,
-                            "DELETE FROM [CloneUserGroup] WHERE [CloneUserGroup].[IsDeleted] = @Param1");
+                            "DELETE FROM CloneUserGroup WHERE CloneUserGroup.[IsDeleted] = @Param1");
         }
 
         [Test, Ignore("For Further Testing")]
@@ -37,7 +37,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         public void DeleteAll()
         {
             var query = SqlBuilder.Delete<PermissionGroup>();
-            Assert.AreEqual(query.CommandText, "DELETE FROM [permissiongroups]");
+            Assert.AreEqual(query.CommandText, "DELETE FROM permissiongroups");
             Assert.IsTrue(query.CommandParameters.Count == 0);
         }
     }

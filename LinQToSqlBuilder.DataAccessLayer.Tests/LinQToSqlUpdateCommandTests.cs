@@ -30,12 +30,12 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             })
                                   .Where(user => user.Id == userId);
 
-            Assert.AreEqual("UPDATE [Users] " +
+            Assert.AreEqual("UPDATE Users " +
                             "SET " +
                             "[Email] = REPLACE([Email], @Param1, @Param2), " +
                             "[LastChangePassword] = @Param3, " +
                             "[FailedLogIns] = [FailedLogIns] - @Param4 " +
-                            "WHERE [Users].[Id] = @Param5",
+                            "WHERE Users.[Id] = @Param5",
                             query.CommandText);
         }
 
@@ -50,7 +50,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             })
               .Where(x => x.Guid == Guid.NewGuid());
 
-            Assert.AreEqual("UPDATE [userlog] SET [DateSlide] = @Param1 WHERE [userlog].[Guid] = @Param2", query.CommandText);
+            Assert.AreEqual("UPDATE userlog SET [DateSlide] = @Param1 WHERE userlog.[Guid] = @Param2", query.CommandText);
         }
 
         [Test]
@@ -68,7 +68,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                 IsUndeletable = !undelete
             });
 
-            Assert.AreEqual("UPDATE [UsersGroup] SET [CreatedBy] = @Param1, [CreatedDate] = @Param2, [Description] = @Param3, [Name] = @Param4, [ID_FilingStatus] = @Param5, [IsDeleted] = @Param6, [IsUndeletable] = @Param7",
+            Assert.AreEqual("UPDATE UsersGroup SET [CreatedBy] = @Param1, [CreatedDate] = @Param2, [Description] = @Param3, [Name] = @Param4, [ID_FilingStatus] = @Param5, [IsDeleted] = @Param6, [IsUndeletable] = @Param7",
                             query.CommandText);
             Assert.AreEqual(7, query.CommandParameters.Count);
         }
@@ -93,12 +93,12 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             }
 
             var result = new StringBuilder();
-            result.AppendLine("UPDATE [UsersGroup] SET [ID_FilingStatus] = @Param1, [CreatedBy] = @Param2 WHERE [UsersGroup].[Id] = @Param3");
-            result.AppendLine("UPDATE [UsersGroup] SET [ID_FilingStatus] = @Param4, [CreatedBy] = @Param5 WHERE [UsersGroup].[Id] = @Param6");
-            result.AppendLine("UPDATE [UsersGroup] SET [ID_FilingStatus] = @Param7, [CreatedBy] = @Param8 WHERE [UsersGroup].[Id] = @Param9");
-            result.AppendLine("UPDATE [UsersGroup] SET [ID_FilingStatus] = @Param10, [CreatedBy] = @Param11 WHERE [UsersGroup].[Id] = @Param12");
-            result.AppendLine("UPDATE [UsersGroup] SET [ID_FilingStatus] = @Param13, [CreatedBy] = @Param14 WHERE [UsersGroup].[Id] = @Param15");
-            result.Append("UPDATE [UsersGroup] SET [ID_FilingStatus] = @Param16, [CreatedBy] = @Param17 WHERE [UsersGroup].[Id] = @Param18");
+            result.AppendLine("UPDATE UsersGroup SET [ID_FilingStatus] = @Param1, [CreatedBy] = @Param2 WHERE UsersGroup.[Id] = @Param3");
+            result.AppendLine("UPDATE UsersGroup SET [ID_FilingStatus] = @Param4, [CreatedBy] = @Param5 WHERE UsersGroup.[Id] = @Param6");
+            result.AppendLine("UPDATE UsersGroup SET [ID_FilingStatus] = @Param7, [CreatedBy] = @Param8 WHERE UsersGroup.[Id] = @Param9");
+            result.AppendLine("UPDATE UsersGroup SET [ID_FilingStatus] = @Param10, [CreatedBy] = @Param11 WHERE UsersGroup.[Id] = @Param12");
+            result.AppendLine("UPDATE UsersGroup SET [ID_FilingStatus] = @Param13, [CreatedBy] = @Param14 WHERE UsersGroup.[Id] = @Param15");
+            result.Append("UPDATE UsersGroup SET [ID_FilingStatus] = @Param16, [CreatedBy] = @Param17 WHERE UsersGroup.[Id] = @Param18");
 
             Assert.AreEqual(result.ToString(), query.CommandText);
             Assert.AreEqual(18, query.CommandParameters.Count);
