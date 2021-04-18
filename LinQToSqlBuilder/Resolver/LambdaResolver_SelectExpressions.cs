@@ -32,6 +32,14 @@ namespace Dapper.SqlBuilder.Resolver
             Builder.CurrentParamIndex = rebuilder.Builder.CurrentParamIndex;
             Builder.Join(GetTableName<T2>(), rebuilder.Builder.WhereCommandText, joinType);
         }
+        public void Join<T1, T2, T3, T4>(Expression<Func<T1, T2, T3, T4, bool>> expression, JoinType joinType)
+        {
+            var rebuilder = new SqlJoinBuilder<T1, T2, T3, T4>(Builder.CurrentParamIndex).Build(expression);
+            foreach (var p in rebuilder.CommandParameters)
+                Builder.Parameters.Add(p);
+            Builder.CurrentParamIndex = rebuilder.Builder.CurrentParamIndex;
+            Builder.Join(GetTableName<T2>(), rebuilder.Builder.WhereCommandText, joinType);
+        }
 
         public void OrderBy<T>(Expression<Func<T, object>> expression, bool desc = false)
         {

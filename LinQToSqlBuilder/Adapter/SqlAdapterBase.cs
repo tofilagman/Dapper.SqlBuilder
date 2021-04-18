@@ -20,6 +20,18 @@ namespace Dapper.SqlBuilder.Adapter
                .Trim();
         }
 
+        public string SubQueryString(string subQuery,
+                                  string selection,
+                                  string source,
+                                  string conditions,
+                                  string order = "",
+                                  string grouping = "",
+                                  string having = "")
+        {
+            return $"SELECT {selection} FROM (\r\n {subQuery} \r\n) {source} {conditions} {order} {grouping} {having}"
+               .Trim();
+        }
+
         public virtual string InsertCommand(string target, List<Dictionary<string, object>> values, string output = "")
         {
             var fieldsToInsert = values.First()

@@ -13,4 +13,19 @@
         AVG,
         CUSTOM
     }
+
+    public enum DatePart
+    {
+        YEAR,
+        MONTH,
+        DAY,
+        DAYOFYEAR,
+        HOUR,
+        MINUTE,
+        SECOND,
+        MILLISECOND,
+        MICROSECOND,
+        WEEK,
+        WEEKDAY
+    }
 }

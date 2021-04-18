@@ -223,6 +223,11 @@ namespace Dapper.SqlBuilder
         {
             return new SqlBuilder<T>(functionStatement).SelectFunction(functionStatement, expression, args);
         }
+
+        public static ISqlBuilder<T> SubQuery<T>(ISqlBuilder<T> subQuery)
+        {
+           return new SqlBuilder<T>(subQuery);
+        }
     }
 
     /// <summary>
@@ -255,6 +260,12 @@ namespace Dapper.SqlBuilder
         {
             Builder = builder;
             Resolver = resolver;
+        }
+
+        internal SqlBuilder(ISqlBuilder builder): this(LambdaResolver.GetTableName<T>(), builder.CurrentParamIndex)
+        {
+            Builder.SubQuery = builder;
+            Builder.Operation = SqlOperations.SubQuery;
         }
 
         public ISqlBuilder<T> Where(Expression<Func<T, bool>> expression)
@@ -376,6 +387,12 @@ namespace Dapper.SqlBuilder
             return this;
         }
 
+        public ISqlBuilder<T> Select<T2, T3, TResult>(Expression<Func<T, T2, T3, TResult>> expression)
+        {
+            Resolver.Select(expression);
+            return this;
+        }
+
         public ISqlBuilder<T> Update(Expression<Func<T, T>> expression)
         {
             Resolver.Update(expression);
@@ -478,8 +495,7 @@ namespace Dapper.SqlBuilder
         }
 
         public ISqlBuilder<T> SelectFunction<TResult>(string functionStatement, Expression<Func<T, TResult>> expression, params object[] args)
-        {
-            Builder.IgnoreTableBracket();
+        { 
             Resolver.SelectWithFunction(functionStatement, expression, args);
             return this;
         }
@@ -704,6 +720,21 @@ namespace Dapper.SqlBuilder
         }
 
         public SqlJoinBuilder<T1, T2, T3> Build(Expression<Func<T1, T2, T3, bool>> expression)
+        {
+            Resolver.ResolveQuery(expression);
+            return this;
+        }
+    }
+
+    class SqlJoinBuilder<T1, T2, T3, T4> : SqlBuilderBase
+    {
+        public SqlJoinBuilder(int paramCount = 0)
+        {
+            Builder = new SqlQueryBuilder(LambdaResolver.GetTableName<T2>(), DefaultAdapter, paramCount);
+            Resolver = new LambdaResolver(Builder);
+        }
+
+        public SqlJoinBuilder<T1, T2, T3, T4> Build(Expression<Func<T1, T2, T3, T4, bool>> expression)
         {
             Resolver.ResolveQuery(expression);
             return this;

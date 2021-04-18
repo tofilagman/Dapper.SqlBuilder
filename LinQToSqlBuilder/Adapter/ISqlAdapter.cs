@@ -7,11 +7,13 @@ namespace Dapper.SqlBuilder.Adapter
     /// </summary>
     public interface ISqlAdapter
     {
-        string QueryString(string selection, string source, string conditions,
-            string order, string grouping, string having);
+        string QueryString(string selection, string source, string conditions, string order, string grouping, string having);
 
-        string QueryStringPage(string selection, string source, string conditions, string order,
-            int pageSize, int pageIndex = 0);
+        string QueryStringPage(string selection, string source, string conditions, string order, int pageSize, int pageIndex = 0);
+
+        string SubQueryString(string subQuery, string selection, string source, string conditions, string order, string grouping, string having);
+
+        string SubQueryStringPage(string subQuery, string selection, string source, string conditions, string order, int pageSize, int pageIndex = 0);
 
         string InsertCommand(string source, List<Dictionary<string, object>> values, string output = "");
 
@@ -49,7 +51,8 @@ namespace Dapper.SqlBuilder.Adapter
         InsertFrom,
         Update,
         Delete,
-        Case
+        Case,
+        SubQuery
     }
 
     enum JoinType

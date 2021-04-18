@@ -193,5 +193,19 @@ namespace Dapper.SqlBuilder.Builder
             var fields = WhereConditions.Count == 0 ? "" : string.Join("", WhereConditions);
             return Adapter.WhereCommand(fields);
         }
+
+        private string GenerateSubQueryCommand()
+        {
+            foreach (var ndc in SubQuery.CommandParameters)
+                AddParameter(ndc.Key, ndc.Value);
+
+            if (!_pageSize.HasValue || _pageSize == 0)
+                return Adapter.SubQueryString(SubQuery.CommandText, Selection, Source, Conditions, Grouping, Having, Order);
+
+            if (_pageIndex > 0 && OrderByList.Count == 0)
+                throw new Exception("Pagination requires the ORDER BY statement to be specified");
+
+            return Adapter.SubQueryStringPage(SubQuery.CommandText, Selection, Source, Conditions, Order, _pageSize.Value, _pageIndex);
+        }
     }
 }

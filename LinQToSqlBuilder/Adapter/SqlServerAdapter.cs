@@ -31,5 +31,14 @@
             return
                 $@"SELECT {selection} FROM {source} {conditions} {order} OFFSET {pageSize * pageIndex} ROWS FETCH NEXT {pageSize} ROWS ONLY";
         }
+         
+        public string SubQueryStringPage(string subQuery, string selection, string source, string conditions, string order, int pageSize, int pageIndex = 0)
+        {
+            if (pageIndex == 0)
+                return $"SELECT TOP({pageSize}) {selection} FROM (\r\n {subQuery} \r\n) {source} {conditions} {order}";
+
+            return
+                $"SELECT {selection} FROM (\r\n {subQuery} \r\n) {source} {conditions} {order} OFFSET {pageSize * pageIndex} ROWS FETCH NEXT {pageSize} ROWS ONLY";
+        }
     }
 }

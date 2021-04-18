@@ -53,13 +53,8 @@ namespace Dapper.SqlBuilder.Builder
         private int? _pageSize;
 
         private int _pageIndex;
-
-        private bool _ignoreTableBrackets = false;
-
-        public void IgnoreTableBracket()
-        {
-            _ignoreTableBrackets = true;
-        }
+          
+        public ISqlBuilder SubQuery { get; set; }
 
         public int CurrentParamIndex { get; set; }
 
@@ -124,6 +119,8 @@ namespace Dapper.SqlBuilder.Builder
                         return Adapter.DeleteCommand(Source, Conditions);
                     case SqlOperations.Case:
                         return string.Join("", WhereConditions);
+                    case SqlOperations.SubQuery:
+                        return GenerateSubQueryCommand();
                     default:
                         return GenerateQueryCommand();
                 }
