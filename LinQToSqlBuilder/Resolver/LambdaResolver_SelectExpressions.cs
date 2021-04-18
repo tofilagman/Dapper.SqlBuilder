@@ -24,6 +24,14 @@ namespace Dapper.SqlBuilder.Resolver
             Builder.Join(GetTableName<T2>(), rebuilder.Builder.WhereCommandText, joinType);
         }
 
+        public void Join<T1, T2, T3>(Expression<Func<T1, T2, T3, bool>> expression, JoinType joinType)
+        {
+            var rebuilder = new SqlJoinBuilder<T1, T2, T3>(Builder.CurrentParamIndex).Build(expression);
+            foreach (var p in rebuilder.CommandParameters)
+                Builder.Parameters.Add(p);
+            Builder.CurrentParamIndex = rebuilder.Builder.CurrentParamIndex;
+            Builder.Join(GetTableName<T2>(), rebuilder.Builder.WhereCommandText, joinType);
+        }
 
         public void OrderBy<T>(Expression<Func<T, object>> expression, bool desc = false)
         {
@@ -156,12 +164,12 @@ namespace Dapper.SqlBuilder.Resolver
             throw new Exception("Cant define a table from an expression");
         }
 
-        public void SelectWithFunction<T>(Expression<Func<T, object>> expression, SelectFunctionType selectFunction)
+        public void SelectWithFunction<T, TResult>(Expression<Func<T, TResult>> expression, SelectFunctionType selectFunction)
         {
             SelectWithFunction<T>(expression.Body, selectFunction);
         }
 
-        public void SelectWithFunction<T>(string functionStatement, Expression<Func<T, object>> expression, params object[] args)
+        public void SelectWithFunction<T, TResult>(string functionStatement, Expression<Func<T, TResult>> expression, params object[] args)
         {
             SelectWithFunction<T>(functionStatement, expression?.Body, args);
         }
@@ -187,8 +195,9 @@ namespace Dapper.SqlBuilder.Resolver
 
             if (expression != null)
             {
-                var fieldName = GetColumnName(GetMemberExpression(expression));
-                Builder.Select(GetTableName<T>(), fieldName);
+                //var fieldName = GetColumnName(GetMemberExpression(expression));
+                //Builder.Select(GetTableName<T>(), fieldName);
+                Select<T>(expression);
             }
             else
             {

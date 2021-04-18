@@ -370,6 +370,12 @@ namespace Dapper.SqlBuilder
             return this;
         }
 
+        public ISqlBuilder<T> Select<T2, TResult>(Expression<Func<T, T2, TResult>> expression)
+        {
+            Resolver.Select(expression);
+            return this;
+        }
+
         public ISqlBuilder<T> Update(Expression<Func<T, T>> expression)
         {
             Resolver.Update(expression);
@@ -464,44 +470,14 @@ namespace Dapper.SqlBuilder
             Resolver.SelectWithFunction(expression, SelectFunctionType.AVG);
             return this;
         }
-
-        private ISqlBuilder<T2> Join<T2>(Expression<Func<T, T2, bool>> expression, JoinType joinType)
-        {
-            var joinQuery = new SqlBuilder<T2>(Builder, Resolver);
-            Resolver.Join(expression, joinType);
-            return joinQuery;
-        }
-
-        private ISqlBuilder<T2> Join<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns, JoinType joinType)
-        {
-            var joinQuery = new SqlBuilder<T2>(Builder, Resolver).Select(columns);
-            Resolver.Join(expression, joinType);
-            return joinQuery;
-        }
-
-        public ISqlBuilder<T2> InnerJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.InnerJoin);
-        public ISqlBuilder<T2> InnerJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.InnerJoin);
-        public ISqlBuilder<T2> LeftJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.LeftJoin);
-        public ISqlBuilder<T2> LeftJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.LeftJoin);
-        public ISqlBuilder<T2> LeftOuterJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.LeftOuterJoin);
-        public ISqlBuilder<T2> LeftOuterJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.LeftOuterJoin);
-        public ISqlBuilder<T2> RightJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.RightJoin);
-        public ISqlBuilder<T2> RightJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.RightJoin);
-        public ISqlBuilder<T2> RightOuterJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.RightOuterJoin);
-        public ISqlBuilder<T2> RightOuterJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.RightOuterJoin);
-        public ISqlBuilder<T2> FullJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.FullJoin);
-        public ISqlBuilder<T2> FullJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.FullJoin);
-        public ISqlBuilder<T2> FullOuterJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.FullOuterJoin);
-        public ISqlBuilder<T2> FullOuterJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.FullOuterJoin);
-        public ISqlBuilder<T2> CrossJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.CrossJoin);
-        public ISqlBuilder<T2> CrossJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.CrossJoin);
+         
         public ISqlBuilder<T> GroupBy(Expression<Func<T, object>> expression)
         {
             Resolver.GroupBy(expression);
             return this;
         }
 
-        public ISqlBuilder<T> SelectFunction(string functionStatement, Expression<Func<T, object>> expression, params object[] args)
+        public ISqlBuilder<T> SelectFunction<TResult>(string functionStatement, Expression<Func<T, TResult>> expression, params object[] args)
         {
             Builder.IgnoreTableBracket();
             Resolver.SelectWithFunction(functionStatement, expression, args);
@@ -713,6 +689,21 @@ namespace Dapper.SqlBuilder
         }
 
         public SqlJoinBuilder<T1, T2> Build(Expression<Func<T1, T2, bool>> expression)
+        {
+            Resolver.ResolveQuery(expression);
+            return this;
+        }
+    }
+
+    class SqlJoinBuilder<T1, T2, T3> : SqlBuilderBase
+    {
+        public SqlJoinBuilder(int paramCount = 0)
+        {
+            Builder = new SqlQueryBuilder(LambdaResolver.GetTableName<T2>(), DefaultAdapter, paramCount);
+            Resolver = new LambdaResolver(Builder);
+        }
+
+        public SqlJoinBuilder<T1, T2, T3> Build(Expression<Func<T1, T2, T3, bool>> expression)
         {
             Resolver.ResolveQuery(expression);
             return this;

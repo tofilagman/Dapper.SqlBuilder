@@ -372,6 +372,29 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         }
 
         [Test]
+        public void JoinWithCustomTable()
+        {
+            var qry = SqlBuilder
+                .Select<UserGroup>(x => x.IsUndeletable).Where(x => x.Id == 3 || x.IsDeleted)
+                .Where(x => x.Id == 2)
+                .LeftJoin<UserUserGroup>((x, y) => x.Id == y.UserGroupId, x => x.UserId)
+                .LeftJoin<User>((x, y) => x.UserId == y.Id)
+                .LeftJoin<UserUserGroup, UserGroup>((x, y, z) => x.Id == y.UserId && y.UserGroupId == z.Id);
+            Assert.IsNotNull(qry.CommandText);
+
+            var cmd = "SELECT UsersGroup.[IsUndeletable], UsersUserGroup.[UserId] ";
+            cmd += "FROM UsersGroup ";
+            cmd += "LEFT JOIN UsersUserGroup ON UsersGroup.[Id] = UsersUserGroup.[UserGroupId] ";
+            cmd += "LEFT JOIN Users ON UsersUserGroup.[UserId] = Users.[Id] ";
+            cmd += "LEFT JOIN UsersUserGroup ON (Users.[Id] = UsersUserGroup.[UserId] AND UsersUserGroup.[UserGroupId] = UsersGroup.[Id]) ";
+            cmd += "WHERE (UsersGroup.[Id] = @Param1 OR UsersGroup.[IsDeleted] = @Param2) AND UsersGroup.[Id] = @Param3";
+
+
+            Assert.AreEqual(cmd, qry.CommandText);
+            Assert.AreEqual(3, qry.CommandParameters.Count);
+        }
+
+        [Test]
         public void JoinMultipleOn()
         {
             var qry = SqlBuilder
@@ -682,9 +705,9 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         {
             var date = DateTime.Now;
 
-            var ng = SqlBuilder.SelectFunction<UserGroup>("fCalendar(@StartDate, @EndDate)", x => x.CreatedBy, date, date);
+            var ng = SqlBuilder.SelectFunction<UserGroup>("fCalendar(@StartDate, @EndDate)", x => new { x.CreatedBy }, date, date);
 
-            Assert.AreEqual("SELECT UsersGroup.* FROM fCalendar(@StartDate, @EndDate) UsersGroup", ng.CommandText);
+            Assert.AreEqual("SELECT UsersGroup.[CreatedBy] FROM fCalendar(@StartDate, @EndDate) UsersGroup", ng.CommandText);
             Assert.AreEqual(2, ng.CommandParameters.Count);
         }
     }
