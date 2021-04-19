@@ -26,15 +26,15 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             var query = SqlBuilder.Count<User>(_ => _.Id)
                                   .Where(_ => _.Id > 10);
 
-            Assert.AreEqual($"SELECT COUNT(Users.[Id]) FROM Users " +
-                            $"WHERE Users.[Id] > @Param1",
+            Assert.AreEqual($"SELECT COUNT(u.[Id]) FROM Users u " +
+                            $"WHERE u.[Id] > @Param1",
                             query.CommandText);
 
             query = SqlBuilder.Count<User>()
                                   .Where(_ => _.Id > 10);
 
-            Assert.AreEqual($"SELECT COUNT(*) FROM Users " +
-                            $"WHERE Users.[Id] > @Param1",
+            Assert.AreEqual($"SELECT COUNT(*) FROM Users u " +
+                            $"WHERE u.[Id] > @Param1",
                             query.CommandText);
         }
 
@@ -45,7 +45,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                                   .OrderBy(_ => _.Id)
                                   .Take(10);
 
-            Assert.AreEqual($"SELECT TOP(10) Users.* FROM Users ORDER BY Users.[Id]",
+            Assert.AreEqual($"SELECT TOP(10) u.* FROM Users u ORDER BY u.[Id]",
                             query.CommandText);
         }
 
@@ -63,13 +63,13 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                                   .OrderBy(_ => _.Id)
                                   .Take(10);
 
-            Assert.AreEqual($"SELECT TOP(10) Users.[Email], " +
-                            $"Users.[FirstName], " +
-                            $"Users.[LastName], " +
-                            $"Users.[Id] " +
-                            $"FROM Users " +
-                            $"WHERE NOT Users.[RecordDeleted] = @Param1 " +
-                            $"ORDER BY Users.[Id]",
+            Assert.AreEqual($"SELECT TOP(10) u.[Email], " +
+                            $"u.[FirstName], " +
+                            $"u.[LastName], " +
+                            $"u.[Id] " +
+                            $"FROM Users u " +
+                            $"WHERE NOT u.[RecordDeleted] = @Param1 " +
+                            $"ORDER BY u.[Id]",
                             query.CommandText);
         }
 
@@ -83,10 +83,10 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                                   .Skip(1);
 
 
-            Assert.AreEqual($"SELECT Users.* " +
-                            $"FROM Users " +
-                            $"WHERE Users.[ModifiedDate] > @Param1 " +
-                            $"ORDER BY Users.[Id] " +
+            Assert.AreEqual($"SELECT u.* " +
+                            $"FROM Users u " +
+                            $"WHERE u.[ModifiedDate] > @Param1 " +
+                            $"ORDER BY u.[Id] " +
                             $"OFFSET 10 ROWS FETCH NEXT 10 ROWS ONLY",
                             query.CommandText);
         }
@@ -99,7 +99,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             var query = SqlBuilder.Select<User>()
                                   .Where(user => user.Email == userEmail);
 
-            Assert.AreEqual("SELECT Users.* FROM Users WHERE Users.[Email] = @Param1",
+            Assert.AreEqual("SELECT u.* FROM Users u WHERE u.[Email] = @Param1",
                             query.CommandText);
 
             Assert.AreEqual(userEmail,
@@ -114,7 +114,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             var query = SqlBuilder.SelectSingle<User>()
                                   .Where(user => user.Email == userEmail);
 
-            Assert.AreEqual("SELECT TOP(1) Users.* FROM Users WHERE Users.[Email] = @Param1",
+            Assert.AreEqual("SELECT TOP(1) u.* FROM Users u WHERE u.[Email] = @Param1",
                             query.CommandText);
 
             Assert.AreEqual(userEmail,
@@ -131,7 +131,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             var query = SqlBuilder.SelectSingle<User>()
                                   .Where(user => user.Email == userEmail);
 
-            Assert.AreEqual("SELECT Users.* FROM Users WHERE Users.Email = @Param1 LIMIT 1",
+            Assert.AreEqual("SELECT u.* FROM Users u WHERE u.Email = @Param1 LIMIT 1",
                             query.CommandText);
 
             Assert.AreEqual(userEmail,
@@ -146,9 +146,9 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             var query = SqlBuilder.Select<User>()
                                   .Where(user => user.Email.Contains(searchTerm));
 
-            Assert.AreEqual("SELECT Users.* " +
-                            "FROM Users " +
-                            "WHERE Users.[Email] LIKE @Param1",
+            Assert.AreEqual("SELECT u.* " +
+                            "FROM Users u " +
+                            "WHERE u.[Email] LIKE @Param1",
                             query.CommandText);
         }
 
@@ -162,11 +162,11 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                                   .InnerJoin<UserGroup>((group, g) => group.UserGroupId == g.Id)
                                   .Where(group => group.Id == groupId);
 
-            Assert.AreEqual("SELECT Users.*, UsersUserGroup.*, UsersGroup.* " +
-                            "FROM Users " +
-                            "INNER JOIN UsersUserGroup ON Users.[Id] = UsersUserGroup.[UserId] " +
-                            "INNER JOIN UsersGroup ON UsersUserGroup.[UserGroupId] = UsersGroup.[Id] " +
-                            "WHERE UsersGroup.[Id] = @Param1",
+            Assert.AreEqual("SELECT u.*, uug.*, ug.* " +
+                            "FROM Users u " +
+                            "INNER JOIN UsersUserGroup uug ON u.[Id] = uug.[UserId] " +
+                            "INNER JOIN UsersGroup ug ON uug.[UserGroupId] = ug.[Id] " +
+                            "WHERE ug.[Id] = @Param1",
                             query.CommandText);
 
 
@@ -176,30 +176,14 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                                    .InnerJoin<UserGroup>((group, g) => group.UserGroupId == g.Id)
                                    .Where(group => group.Id == groupId);
 
-            Assert.AreEqual("SELECT Users.*, UsersUserGroup.*, UsersGroup.* " +
-                            "FROM Users " +
-                            "INNER JOIN UsersUserGroup ON Users.[Id] = UsersUserGroup.[UserId] " +
-                            "INNER JOIN UsersGroup ON UsersUserGroup.[UserGroupId] = UsersGroup.[Id] " +
-                            "WHERE Users.[Email] = @Param1 " +
-                            "AND UsersGroup.[Id] = @Param2",
+            Assert.AreEqual("SELECT u.*, uug.*, ug.* " +
+                            "FROM Users u " +
+                            "INNER JOIN UsersUserGroup uug ON u.[Id] = uug.[UserId] " +
+                            "INNER JOIN UsersGroup ug ON uug.[UserGroupId] = ug.[Id] " +
+                            "WHERE u.[Email] = @Param1 " +
+                            "AND ug.[Id] = @Param2",
                             query2.CommandText);
-
-            //var result = new Dictionary<long, User>();
-            //var results = Connection.Query<User, UserGroup, User>(query.CommandText,
-            //                                                      (user, group) =>
-            //                                                      {
-            //                                                          if (!result.ContainsKey(user.Id))
-            //                                                          {
-            //                                                              user.Groups = new List<UserGroup>();
-            //                                                              result.Add(user.Id, user);
-            //                                                          }
-
-            //                                                          result[user.Id].Groups.Add(group);
-            //                                                          return user;
-            //                                                      },
-            //                                                      query.CommandParameters,
-            //                                                      splitOn: "UserId,UserGroupId")
-            //                        .ToList();
+             
         }
 
         [Test]
@@ -208,9 +192,9 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             var query = SqlBuilder.Select<UserGroup>()
                                   .OrderBy(_ => _.Name);
 
-            Assert.AreEqual("SELECT UsersGroup.* " +
-                            "FROM UsersGroup " +
-                            "ORDER BY UsersGroup.[Name]",
+            Assert.AreEqual("SELECT ug.* " +
+                            "FROM UsersGroup ug " +
+                            "ORDER BY ug.[Name]",
                             query.CommandText);
         }
 
@@ -221,9 +205,9 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                                   .OrderByDescending(_ => _.Name);
 
 
-            Assert.AreEqual("SELECT UsersGroup.* " +
-                            "FROM UsersGroup " +
-                            "ORDER BY UsersGroup.[Name] DESC",
+            Assert.AreEqual("SELECT ug.* " +
+                            "FROM UsersGroup ug " +
+                            "ORDER BY ug.[Name] DESC",
                             query.CommandText);
         }
 
@@ -240,7 +224,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         {
             var userType = UserTypeEnum.Player;
             var query = SqlBuilder.Select<PermissionGroup>().Where(x => x.UserType == userType);
-            Assert.AreEqual(query.CommandText, "SELECT permissiongroups.* FROM permissiongroups WHERE permissiongroups.[UserType] = @Param1");
+            Assert.AreEqual(query.CommandText, "SELECT pg.* FROM PermissionGroups pg WHERE pg.[UserType] = @Param1");
             Assert.AreEqual(query.CommandParameters.First().Value, 4);
         }
 
@@ -248,7 +232,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         public void WhereEnumInPlace()
         {
             var query = SqlBuilder.Select<PermissionGroup>().Where(x => x.UserType == UserTypeEnum.Player);
-            Assert.AreEqual(query.CommandText, "SELECT permissiongroups.* FROM permissiongroups WHERE permissiongroups.[UserType] = @Param1");
+            Assert.AreEqual(query.CommandText, "SELECT pg.* FROM PermissionGroups pg WHERE pg.[UserType] = @Param1");
             Assert.AreEqual(query.CommandParameters.First().Value, 4);
         }
 
@@ -257,7 +241,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         {
             var permItem = SqlBuilder.Select<PermissionGroup>().WhereIsIn(x => x.ID_Perm, new List<int> { 1, 2, 4 });
 
-            Assert.AreEqual(permItem.CommandText, "SELECT permissiongroups.* FROM permissiongroups WHERE permissiongroups.[ID_Perm] IN (@Param1,@Param2,@Param3)");
+            Assert.AreEqual(permItem.CommandText, "SELECT pg.* FROM PermissionGroups pg WHERE pg.[ID_Perm] IN (@Param1,@Param2,@Param3)");
             Assert.AreEqual(permItem.CommandParameters.Count, 3);
         }
 
@@ -266,7 +250,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         {
             var permItem = SqlBuilder.Select<PermissionGroup>().WhereIsIn(x => x.ID_Perm, new int[] { 1, 2, 4 });
 
-            Assert.AreEqual(permItem.CommandText, "SELECT permissiongroups.* FROM permissiongroups WHERE permissiongroups.[ID_Perm] IN (@Param1,@Param2,@Param3)");
+            Assert.AreEqual(permItem.CommandText, "SELECT pg.* FROM PermissionGroups pg WHERE pg.[ID_Perm] IN (@Param1,@Param2,@Param3)");
             Assert.AreEqual(permItem.CommandParameters.Count, 3);
         }
 
@@ -284,7 +268,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
 
             var permItem = SqlBuilder.Select<PermissionGroup>().WhereIsIn(x => x.ID_Perm, perm.Select(x => x.ID));
 
-            Assert.AreEqual(permItem.CommandText, "SELECT permissiongroups.* FROM permissiongroups WHERE permissiongroups.[ID_Perm] IN (@Param1,@Param2,@Param3,@Param4,@Param5)");
+            Assert.AreEqual(permItem.CommandText, "SELECT pg.* FROM PermissionGroups pg WHERE pg.[ID_Perm] IN (@Param1,@Param2,@Param3,@Param4,@Param5)");
             Assert.AreEqual(permItem.CommandParameters.Count, 5);
         }
 
@@ -292,7 +276,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         public void WhereBetween()
         {
             var perm = SqlBuilder.Select<PermissionGroup>().WhereBetween(x => x.Date, DateTime.Now, DateTime.Now.AddDays(1));
-            Assert.AreEqual(perm.CommandText, "SELECT permissiongroups.* FROM permissiongroups WHERE (permissiongroups.[Date] BETWEEN @Param1 AND @Param2)");
+            Assert.AreEqual(perm.CommandText, "SELECT pg.* FROM PermissionGroups pg WHERE (pg.[Date] BETWEEN @Param1 AND @Param2)");
             Assert.AreEqual(perm.CommandParameters.Count, 2);
         }
 
@@ -300,7 +284,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         public void WhereBetweenAnd()
         {
             var perm = SqlBuilder.Select<PermissionGroup>().Where(x => x.Name == "Test").AndBetween(x => x.Date, DateTime.Now, DateTime.Now.AddDays(1));
-            Assert.AreEqual(perm.CommandText, "SELECT permissiongroups.* FROM permissiongroups WHERE permissiongroups.[Name] = @Param1 AND (permissiongroups.[Date] BETWEEN @Param2 AND @Param3)");
+            Assert.AreEqual(perm.CommandText, "SELECT pg.* FROM PermissionGroups pg WHERE pg.[Name] = @Param1 AND (pg.[Date] BETWEEN @Param2 AND @Param3)");
             Assert.AreEqual(perm.CommandParameters.Count, 3);
         }
 
@@ -308,7 +292,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         public void WhereNotBetween()
         {
             var perm = SqlBuilder.Select<PermissionGroup>().WhereNotBetween(x => x.Date, DateTime.Now, DateTime.Now.AddDays(1));
-            Assert.AreEqual(perm.CommandText, "SELECT permissiongroups.* FROM permissiongroups WHERE (permissiongroups.[Date] NOT BETWEEN @Param1 AND @Param2)");
+            Assert.AreEqual(perm.CommandText, "SELECT pg.* FROM PermissionGroups pg WHERE (pg.[Date] NOT BETWEEN @Param1 AND @Param2)");
             Assert.AreEqual(perm.CommandParameters.Count, 2);
         }
 
@@ -317,7 +301,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         {
             SqlBuilder.SetAdapter(new MySqlAdapter());
             var perm = SqlBuilder.Select<PermissionGroup>().Where(x => x.Name == "Test").AndBetween(x => x.Date, DateTime.Now, DateTime.Now.AddDays(1));
-            Assert.AreEqual(perm.CommandText, "SELECT permissiongroups.* FROM permissiongroups WHERE permissiongroups.Name = @Param1 AND (permissiongroups.Date BETWEEN @Param2 AND @Param3)");
+            Assert.AreEqual(perm.CommandText, "SELECT pg.* FROM PermissionGroups pg WHERE pg.Name = @Param1 AND (pg.Date BETWEEN @Param2 AND @Param3)");
             Assert.AreEqual(perm.CommandParameters.Count, 3);
         }
 
@@ -329,8 +313,8 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                 .From<UserGroup>(x => x.Where(y => y.IsDeleted == true));
 
             var commandQry = new StringBuilder();
-            commandQry.AppendLine("SELECT permissiongroups.* FROM permissiongroups WHERE permissiongroups.[ID] = @Param1");
-            commandQry.Append("SELECT UsersGroup.* FROM UsersGroup WHERE UsersGroup.[IsDeleted] = @Param2");
+            commandQry.AppendLine("SELECT pg.* FROM PermissionGroups pg WHERE pg.[ID] = @Param1");
+            commandQry.Append("SELECT ug.* FROM UsersGroup ug WHERE ug.[IsDeleted] = @Param2");
 
             Assert.AreEqual(commandQry.ToString(), qry.CommandText);
             Assert.AreEqual(2, qry.CommandParameters.Count);
@@ -344,8 +328,8 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                 .From<UserGroup>();
 
             var commandQry = new StringBuilder();
-            commandQry.AppendLine("SELECT permissiongroups.* FROM permissiongroups");
-            commandQry.Append("SELECT UsersGroup.* FROM UsersGroup");
+            commandQry.AppendLine("SELECT pg.* FROM PermissionGroups pg");
+            commandQry.Append("SELECT ug.* FROM UsersGroup ug");
 
             Assert.AreEqual(commandQry.ToString(), qry.CommandText);
             Assert.AreEqual(0, qry.CommandParameters.Count);
@@ -360,11 +344,11 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                 .LeftJoin<User>((x, y) => x.UserId == y.Id, x => new { x.Email, x.FirstName }).Where(x => x.Id == 2);
             Assert.IsNotNull(qry.CommandText);
 
-            var cmd = "SELECT UsersGroup.[IsUndeletable], UsersUserGroup.[UserId], Users.[Email], Users.[FirstName] ";
-            cmd += "FROM UsersGroup ";
-            cmd += "LEFT JOIN UsersUserGroup ON UsersGroup.[Id] = UsersUserGroup.[UserGroupId] ";
-            cmd += "LEFT JOIN Users ON UsersUserGroup.[UserId] = Users.[Id] ";
-            cmd += "WHERE (UsersGroup.[Id] = @Param1 OR UsersGroup.[IsDeleted] = @Param2) AND Users.[Id] = @Param3";
+            var cmd = "SELECT ug.[IsUndeletable], uug.[UserId], u.[Email], u.[FirstName] ";
+            cmd += "FROM UsersGroup ug ";
+            cmd += "LEFT JOIN UsersUserGroup uug ON ug.[Id] = uug.[UserGroupId] ";
+            cmd += "LEFT JOIN Users u ON uug.[UserId] = u.[Id] ";
+            cmd += "WHERE (ug.[Id] = @Param1 OR ug.[IsDeleted] = @Param2) AND u.[Id] = @Param3";
 
 
             Assert.AreEqual(cmd, qry.CommandText);
@@ -379,15 +363,15 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                 .Where(x => x.Id == 2)
                 .LeftJoin<UserUserGroup>((x, y) => x.Id == y.UserGroupId, x => x.UserId)
                 .LeftJoin<User>((x, y) => x.UserId == y.Id)
-                .LeftJoin<UserUserGroup, UserGroup>((x, y, z) => x.Id == y.UserId && y.UserGroupId == z.Id);
+                .LeftJoin<UserGroup, UserUserGroup>((x, y, z) => x.Id == y.Id && y.Id == z.UserGroupId);
             Assert.IsNotNull(qry.CommandText);
 
-            var cmd = "SELECT UsersGroup.[IsUndeletable], UsersUserGroup.[UserId] ";
-            cmd += "FROM UsersGroup ";
-            cmd += "LEFT JOIN UsersUserGroup ON UsersGroup.[Id] = UsersUserGroup.[UserGroupId] ";
-            cmd += "LEFT JOIN Users ON UsersUserGroup.[UserId] = Users.[Id] ";
-            cmd += "LEFT JOIN UsersUserGroup ON (Users.[Id] = UsersUserGroup.[UserId] AND UsersUserGroup.[UserGroupId] = UsersGroup.[Id]) ";
-            cmd += "WHERE (UsersGroup.[Id] = @Param1 OR UsersGroup.[IsDeleted] = @Param2) AND UsersGroup.[Id] = @Param3";
+            var cmd = "SELECT ug.[IsUndeletable], uug.[UserId] ";
+            cmd += "FROM UsersGroup ug ";
+            cmd += "LEFT JOIN UsersUserGroup uug ON ug.[Id] = uug.[UserGroupId] ";
+            cmd += "LEFT JOIN Users u ON uug.[UserId] = u.[Id] ";
+            cmd += "LEFT JOIN UsersGroup ug ON (u.[Id] = ug.[Id] AND ug.[Id] = uug.[UserGroupId]) ";
+            cmd += "WHERE (ug.[Id] = @Param1 OR ug.[IsDeleted] = @Param2) AND ug.[Id] = @Param3";
 
 
             Assert.AreEqual(cmd, qry.CommandText);
@@ -402,10 +386,10 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                 .LeftJoin<User>((x, y) => x.Id == y.Id && y.FirstName == "Jose", x => new { x.Email, x.FirstName }).Where(x => x.Id == 2);
             Assert.IsNotNull(qry.CommandText);
 
-            var cmd = "SELECT UsersGroup.[IsUndeletable], Users.[Email], Users.[FirstName] ";
-            cmd += "FROM UsersGroup ";
-            cmd += "LEFT JOIN Users ON (UsersGroup.[Id] = Users.[Id] AND Users.[FirstName] = @Param3) ";
-            cmd += "WHERE (UsersGroup.[Id] = @Param1 OR UsersGroup.[IsDeleted] = @Param2) AND Users.[Id] = @Param4";
+            var cmd = "SELECT ug.[IsUndeletable], u.[Email], u.[FirstName] ";
+            cmd += "FROM UsersGroup ug ";
+            cmd += "LEFT JOIN Users u ON (ug.[Id] = u.[Id] AND u.[FirstName] = @Param3) ";
+            cmd += "WHERE (ug.[Id] = @Param1 OR ug.[IsDeleted] = @Param2) AND u.[Id] = @Param4";
 
             Assert.AreEqual(cmd, qry.CommandText);
             Assert.AreEqual(4, qry.CommandParameters.Count);
@@ -419,9 +403,9 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                 .LeftJoin<User>((x, y) => x.Id == y.Id && y.FirstName == "Jose", x => x);
             Assert.IsNotNull(qry.CommandText);
 
-            var cmd = "SELECT Users.* FROM UsersGroup ";
-            cmd += "LEFT JOIN Users ON (UsersGroup.[Id] = Users.[Id] AND Users.[FirstName] = @Param3) ";
-            cmd += "WHERE (UsersGroup.[Id] = @Param1 OR UsersGroup.[IsDeleted] = @Param2)";
+            var cmd = "SELECT u.* FROM UsersGroup ug ";
+            cmd += "LEFT JOIN Users u ON (ug.[Id] = u.[Id] AND u.[FirstName] = @Param3) ";
+            cmd += "WHERE (ug.[Id] = @Param1 OR ug.[IsDeleted] = @Param2)";
 
             Assert.AreEqual(cmd, qry.CommandText);
             Assert.AreEqual(3, qry.CommandParameters.Count);
@@ -437,9 +421,9 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
 
             Assert.IsNotNull(qry.CommandText);
 
-            var cmd = "SELECT Users.[Id], permissiongroups.[ResourcePath] [Name] FROM UsersGroup ";
-            cmd += "LEFT JOIN Users ON (UsersGroup.[Id] = Users.[Id] AND Users.[FirstName] = @Param3) ";
-            cmd += "WHERE (UsersGroup.[Id] = @Param1 OR UsersGroup.[IsDeleted] = @Param2)";
+            var cmd = "SELECT u.[Id], pg.[ResourcePath] [Name] FROM UsersGroup ug ";
+            cmd += "LEFT JOIN Users u ON (ug.[Id] = u.[Id] AND u.[FirstName] = @Param3) ";
+            cmd += "WHERE (ug.[Id] = @Param1 OR ug.[IsDeleted] = @Param2)";
 
             Assert.AreEqual(cmd, qry.CommandText);
             Assert.AreEqual(3, qry.CommandParameters.Count);
@@ -462,9 +446,9 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
 
             Assert.IsNotNull(qry.CommandText);
 
-            var cmd = "SELECT Users.[Id], permissiongroups.[ResourcePath] [Name], permissiongroups.[Name] [ID_FilingStatus], permissiongroups.[Date] [CreatedBy], permissiongroups.[UserType] [Description] ";
-            cmd += "FROM UsersGroup LEFT JOIN Users ON (UsersGroup.[Id] = Users.[Id] AND Users.[FirstName] = @Param3) ";
-            cmd += "WHERE (UsersGroup.[Id] = @Param1 OR UsersGroup.[IsDeleted] = @Param2)";
+            var cmd = "SELECT u.[Id], pg.[ResourcePath] [Name], pg.[Name] [ID_FilingStatus], pg.[Date] [CreatedBy], pg.[UserType] [Description] ";
+            cmd += "FROM UsersGroup ug LEFT JOIN Users u ON (ug.[Id] = u.[Id] AND u.[FirstName] = @Param3) ";
+            cmd += "WHERE (ug.[Id] = @Param1 OR ug.[IsDeleted] = @Param2)";
 
             Assert.AreEqual(cmd, qry.CommandText);
             Assert.AreEqual(3, qry.CommandParameters.Count);
@@ -483,9 +467,9 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
 
             Assert.IsNotNull(qry.CommandText);
 
-            var cmd = "SELECT FORMAT(permissiongroups.[Date], 'HH:mm') [CreatedBy] FROM UsersGroup ";
-            cmd += "LEFT JOIN Users ON (UsersGroup.[Id] = Users.[Id] AND Users.[FirstName] = @Param3) ";
-            cmd += "WHERE (UsersGroup.[Id] = @Param1 OR UsersGroup.[IsDeleted] = @Param2)";
+            var cmd = "SELECT FORMAT(pg.[Date], 'HH:mm') [CreatedBy] FROM UsersGroup ug ";
+            cmd += "LEFT JOIN Users u ON (ug.[Id] = u.[Id] AND u.[FirstName] = @Param3) ";
+            cmd += "WHERE (ug.[Id] = @Param1 OR ug.[IsDeleted] = @Param2)";
 
             Assert.AreEqual(cmd, qry.CommandText);
             Assert.AreEqual(3, qry.CommandParameters.Count);
@@ -508,9 +492,9 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
 
             Assert.IsNotNull(qry.CommandText);
 
-            var cmd = $"SELECT ISNULL(permissiongroups.[Name], 'ss') [CreatedBy], ISNULL(permissiongroups.[Name], Users.[LastName]) [Description], ISNULL(permissiongroups.[Date], GETDATE()) [ModifiedDate], ISNULL(permissiongroups.[Date], '{ ndate }') [CreatedDate] ";
-            cmd += "FROM UsersGroup LEFT JOIN Users ON (UsersGroup.[Id] = Users.[Id] AND Users.[FirstName] = @Param3) ";
-            cmd += "WHERE (UsersGroup.[Id] = @Param1 OR UsersGroup.[IsDeleted] = @Param2)";
+            var cmd = $"SELECT ISNULL(pg.[Name], 'ss') [CreatedBy], ISNULL(pg.[Name], Users.[LastName]) [Description], ISNULL(pg.[Date], GETDATE()) [ModifiedDate], ISNULL(pg.[Date], '{ ndate }') [CreatedDate] ";
+            cmd += "FROM UsersGroup ug LEFT JOIN Users u ON (ug.[Id] = u.[Id] AND u.[FirstName] = @Param3) ";
+            cmd += "WHERE (ug.[Id] = @Param1 OR ug.[IsDeleted] = @Param2)";
 
             Assert.AreEqual(cmd, qry.CommandText);
             Assert.AreEqual(3, qry.CommandParameters.Count);
@@ -531,9 +515,9 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
 
             Assert.IsNotNull(qry.CommandText);
 
-            var cmd = $"SELECT ISNULL(permissiongroups.[WorkCredit], 0) [WorkCredit], ISNULL(permissiongroups.[ntf], 0) [IsDeleted] ";
-            cmd += "FROM UsersGroup LEFT JOIN Users ON (UsersGroup.[Id] = Users.[Id] AND Users.[FirstName] = @Param3) ";
-            cmd += "WHERE (UsersGroup.[Id] = @Param1 OR UsersGroup.[IsDeleted] = @Param2)";
+            var cmd = $"SELECT ISNULL(pg.[WorkCredit], 0) [WorkCredit], ISNULL(pg.[ntf], 0) [IsDeleted] ";
+            cmd += "FROM UsersGroup ug LEFT JOIN Users u ON (ug.[Id] = u.[Id] AND u.[FirstName] = @Param3) ";
+            cmd += "WHERE (ug.[Id] = @Param1 OR ug.[IsDeleted] = @Param2)";
 
             Assert.AreEqual(cmd, qry.CommandText);
             Assert.AreEqual(3, qry.CommandParameters.Count);
@@ -556,9 +540,9 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
 
             Assert.IsNotNull(qry.CommandText);
 
-            var cmd = $"SELECT CONCAT(permissiongroups.[Name], 'ss', ' ', permissiongroups.[Date]) [CreatedBy], CONCAT(permissiongroups.[Name], Users.[LastName], ' ', Users.[FirstName]) [Description], CONCAT(permissiongroups.[Date], GETDATE(), 32, '{ ndate }') [Name], CONCAT(permissiongroups.[WorkCredit], 0) [ModifiedBy] ";
-            cmd += "FROM UsersGroup LEFT JOIN Users ON (UsersGroup.[Id] = Users.[Id] AND Users.[FirstName] = @Param3) ";
-            cmd += "WHERE (UsersGroup.[Id] = @Param1 OR UsersGroup.[IsDeleted] = @Param2)";
+            var cmd = $"SELECT CONCAT(pg.[Name], 'ss', ' ', pg.[Date]) [CreatedBy], CONCAT(pg.[Name], u.[LastName], ' ', u.[FirstName]) [Description], CONCAT(pg.[Date], GETDATE(), 32, '{ ndate }') [Name], CONCAT(pg.[WorkCredit], 0) [ModifiedBy] ";
+            cmd += "FROM UsersGroup ug LEFT JOIN Users u ON (ug.[Id] = u.[Id] AND u.[FirstName] = @Param3) ";
+            cmd += "WHERE (ug.[Id] = @Param1 OR ug.[IsDeleted] = @Param2)";
 
             Assert.AreEqual(cmd, qry.CommandText);
             Assert.AreEqual(3, qry.CommandParameters.Count);
@@ -623,9 +607,9 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                 .Union<UserGroup>(x => x.Select(x => new { ID = x.Id, x.Name }).Where(y => y.IsDeleted == true));
 
             var commandQry = new StringBuilder();
-            commandQry.AppendLine("SELECT permissiongroups.[ID], permissiongroups.[Name] FROM permissiongroups WHERE permissiongroups.[ID] = @Param1");
+            commandQry.AppendLine("SELECT pg.[ID], pg.[Name] FROM PermissionGroups pg WHERE pg.[ID] = @Param1");
             commandQry.AppendLine("UNION ALL");
-            commandQry.Append("SELECT UsersGroup.[Id] [ID], UsersGroup.[Name] FROM UsersGroup WHERE UsersGroup.[IsDeleted] = @Param2");
+            commandQry.Append("SELECT ug.[Id] [ID], ug.[Name] FROM UsersGroup ug WHERE ug.[IsDeleted] = @Param2");
 
             Assert.AreEqual(commandQry.ToString(), qry.CommandText);
             Assert.AreEqual(2, qry.CommandParameters.Count);
@@ -640,9 +624,9 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                 .Union<UserGroup>(x => x.Result(x => new UserGroup { Id = x.Id, Name = x.Name }));
 
             var commandQry = new StringBuilder();
-            commandQry.AppendLine("SELECT permissiongroups.[ID], permissiongroups.[Name] FROM permissiongroups");
+            commandQry.AppendLine("SELECT pg.[ID], pg.[Name] FROM PermissionGroups pg");
             commandQry.AppendLine("UNION ALL");
-            commandQry.Append("SELECT UsersGroup.[Id], UsersGroup.[Name] FROM UsersGroup");
+            commandQry.Append("SELECT ug.[Id], ug.[Name] FROM UsersGroup ug");
 
             Assert.AreEqual(commandQry.ToString(), qry.CommandText);
             Assert.AreEqual(0, qry.CommandParameters.Count);
@@ -659,7 +643,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                    Name = x.Description
                });
 
-            Assert.AreEqual("SELECT UsersGroup.[Description] [Name] FROM UsersGroup", qry.CommandText);
+            Assert.AreEqual("SELECT ug.[Description] [Name] FROM UsersGroup ug", qry.CommandText);
         }
 
         [Test]
@@ -672,7 +656,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                    Name = x.Name.Case(z => SqlCase.Case<UserGroup>(y => y.Id > 3, y => 3).Else(x => x.CreatedBy).End())
                });
 
-            Assert.AreEqual(118, qry.CommandText.Length);
+            Assert.AreEqual(105, qry.CommandText.Length);
             Assert.AreEqual(2, qry.CommandParameters.Count);
         }
 
@@ -686,7 +670,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                    ID = x.Id
                });
 
-            Assert.AreEqual("SELECT UsersGroup.[Id] [ID] FROM UsersGroup", qry.CommandText);
+            Assert.AreEqual("SELECT ug.[Id] [ID] FROM UsersGroup ug", qry.CommandText);
         }
 
         [Test]
@@ -696,7 +680,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
 
             var ng = SqlBuilder.SelectFunction<UserGroup>("fCalendar(@StartDate, @EndDate)", null, date, date);
 
-            Assert.AreEqual("SELECT UsersGroup.* FROM fCalendar(@StartDate, @EndDate) UsersGroup", ng.CommandText);
+            Assert.AreEqual("SELECT ug.* FROM fCalendar(@StartDate, @EndDate) ug", ng.CommandText);
             Assert.AreEqual(2, ng.CommandParameters.Count);
         }
 
@@ -707,8 +691,56 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
 
             var ng = SqlBuilder.SelectFunction<UserGroup>("fCalendar(@StartDate, @EndDate)", x => new { x.CreatedBy }, date, date);
 
-            Assert.AreEqual("SELECT UsersGroup.[CreatedBy] FROM fCalendar(@StartDate, @EndDate) UsersGroup", ng.CommandText);
+            Assert.AreEqual("SELECT ug.[CreatedBy] FROM fCalendar(@StartDate, @EndDate) ug", ng.CommandText);
             Assert.AreEqual(2, ng.CommandParameters.Count);
+        }
+
+        [Test]
+        public void TestSubQuery()
+        {
+            var sq = SqlBuilder.Select<UserGroup>().Where(x=> x.ID_FilingStatus == FilingStatus.Approved);
+            var nsd = SqlBuilder.SubQuery(sq).Where(x => x.Id == 2);
+
+            Assert.AreEqual("SELECT ug1.* FROM ( SELECT ug.* FROM UsersGroup ug WHERE ug.[ID_FilingStatus] = @Param1 ) ug1 WHERE ug1.[Id] = @Param2", nsd.CommandText);
+        }
+
+        [Test]
+        public void TestSubQueryWithJoin()
+        {
+            var sq = SqlBuilder.Select<UserGroup>().Where(x => x.ID_FilingStatus == FilingStatus.Approved);
+            var nsd = SqlBuilder.SubQuery(sq).Where(x => x.Id == 2)
+                        .LeftJoin<UserUserGroup>((x, y)=> x.Id == y.UserGroupId);
+
+            Assert.AreEqual("SELECT ug1.*, uug.* FROM ( SELECT ug.* FROM UsersGroup ug WHERE ug.[ID_FilingStatus] = @Param1 ) ug1 LEFT JOIN UsersUserGroup uug ON ug1.[Id] = uug.[UserGroupId] WHERE ug1.[Id] = @Param2", nsd.CommandText);
+        }
+
+        [Test]
+        public void TestSelect()
+        {
+            var qry = SqlBuilder.Select<UserGroup>();
+            Assert.AreEqual("SELECT ug.* FROM UsersGroup ug", qry.CommandText);
+        }
+
+        [Test]
+        public void TestSelectWithColumn()
+        {
+            var qry = SqlBuilder.Select<UserGroup>(x=> new { x.Id, x.ID_FilingStatus });
+            Assert.AreEqual("SELECT ug.[Id], ug.[ID_FilingStatus] FROM UsersGroup ug", qry.CommandText);
+        }
+
+        [Test, Ignore("Not Implemented Yet")]
+        public void TestJoinWithSameTable()
+        {
+            var qry = SqlBuilder.Select<UserGroup>()
+                        .LeftJoin<UserGroup>((x, y) => x.Id == y.Id);
+            Assert.AreEqual("", qry.CommandText);
+        }
+
+        [Test]
+        public void TestSelectWhere()
+        {
+            var qry = SqlBuilder.Select<UserGroup>().Where(x=> x.ID_FilingStatus == FilingStatus.Approved);
+            Assert.AreEqual("SELECT ug.* FROM UsersGroup ug WHERE ug.[ID_FilingStatus] = @Param1", qry.CommandText);
         }
     }
 }

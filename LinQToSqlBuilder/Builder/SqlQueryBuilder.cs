@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Dapper.SqlBuilder.Adapter;
+using Dapper.SqlBuilder.Resolver;
 
 namespace Dapper.SqlBuilder.Builder
 {
@@ -23,7 +24,11 @@ namespace Dapper.SqlBuilder.Builder
 
         private readonly List<string> _updateValues = new List<string>();
 
-        private List<string> TableNames { get; } = new List<string>();
+        /// <summary>
+        /// Key = Tablename,
+        /// Value = Alias
+        /// </summary>
+        public List<TableValue> TableNames { get; } = new List<TableValue>();
         private List<string> JoinExpressions { get; } = new List<string>();
         private List<string> SelectionList { get; } = new List<string>();
         private List<string> WhereConditions { get; } = new List<string>();
@@ -39,10 +44,10 @@ namespace Dapper.SqlBuilder.Builder
                 switch (Operation)
                 {
                     case SqlOperations.Insert:
-                        return Adapter.Table(TableNames.First());
+                        return Adapter.Table(TableNames.First().TableName);
 
                     case SqlOperations.InsertFrom:
-                        return Adapter.Table(TableNames.Last());
+                        return Adapter.Table(TableNames.Last().TableName);
 
                     default:
                         throw new NotSupportedException("The property is not supported in other queries than INSERT query statement");
@@ -53,17 +58,40 @@ namespace Dapper.SqlBuilder.Builder
         private int? _pageSize;
 
         private int _pageIndex;
-          
+
         public ISqlBuilder SubQuery { get; set; }
 
         public int CurrentParamIndex { get; set; }
+
+        public string GetTableAlias(string tableName)
+        {
+            var tbl = TableNames.SingleOrDefault(x => x.TableName == tableName);
+            return tbl?.Alias ?? LambdaResolver.Shortener(tableName, true);
+        }
 
         private string Source
         {
             get
             {
                 var joinExpression = string.Join(" ", JoinExpressions);
-                return $"{Adapter.Table(TableNames.First())} {joinExpression}";
+                if (Operation == SqlOperations.SubQuery)
+                    return $"{Adapter.Table(TableNames.First().Alias)} {joinExpression}";
+                else
+                {
+                    var mpc = TableNames.First();
+                    if (mpc.IsSubQuery)
+                        return $"{Adapter.Table(mpc.Alias)} {joinExpression}";
+                    else
+                        return $"{Adapter.Table(mpc.TableName, mpc.Alias)} {joinExpression}";
+                }
+            }
+        }
+
+        private string SourceAlias
+        {
+            get
+            {
+                return TableNames.First().Alias;
             }
         }
 
@@ -74,9 +102,21 @@ namespace Dapper.SqlBuilder.Builder
                 if (SelectionList.Count == 0)
                 {
                     if (!JoinExpressions.Any())
-                        return $"{Adapter.Table(TableNames.First())}.*";
+                    {
+                        //if (Operation == SqlOperations.SubQuery)
+                        //    return $"{Adapter.Table(TableNames.First().Alias)}.*";
+                        //else
+                        //    return $"{Adapter.Table(TableNames.First().TableName)}.*";
+                        return $"{Adapter.Table(TableNames.First().Alias)}.*";
+                    }
 
-                    var joinTables = TableNames.Select(_ => $"{Adapter.Table(_)}.*");
+                    var joinTables = TableNames.Select(_ =>
+                    {
+                        //if (Operation == SqlOperations.SubQuery)
+                        return $"{Adapter.Table(_.Alias)}.*";
+                        //else
+                        //    return $"{Adapter.Table(_.TableName)}.*";
+                    });
 
                     var selection = string.Join(", ", joinTables);
 
@@ -114,9 +154,9 @@ namespace Dapper.SqlBuilder.Builder
                     case SqlOperations.InsertFrom:
                         return Adapter.InsertFromCommand(InsertTarget, Source, InsertValues, Conditions);
                     case SqlOperations.Update:
-                        return Adapter.UpdateCommand(UpdateValues, Source, Conditions);
+                        return Adapter.UpdateCommand(UpdateValues, Source, SourceAlias, Conditions);
                     case SqlOperations.Delete:
-                        return Adapter.DeleteCommand(Source, Conditions);
+                        return Adapter.DeleteCommand(Source, SourceAlias, Conditions);
                     case SqlOperations.Case:
                         return string.Join("", WhereConditions);
                     case SqlOperations.SubQuery:
@@ -141,22 +181,28 @@ namespace Dapper.SqlBuilder.Builder
             }
         }
 
-        internal SqlQueryBuilder(string tableName, ISqlAdapter adapter, int paramCountIndex = 0) : this(tableName, tableName, adapter, paramCountIndex)
+        internal SqlQueryBuilder(string tableName, ISqlAdapter adapter, int paramCountIndex = 0) : this(tableName, LambdaResolver.Shortener(tableName, true), adapter, null, paramCountIndex)
         {
         }
 
-        internal SqlQueryBuilder(string tableName, string alias, ISqlAdapter adapter, int paramCountIndex = 0)
+        internal SqlQueryBuilder(string tableName, string alias, ISqlAdapter adapter, ISqlBuilder subQuery, int paramCountIndex = 0, SqlOperations operations = SqlOperations.Query)
         {
             if (adapter == null)
                 throw new InvalidOperationException("Set Adapter first, eg: SqlBuilder.SetAdapter(new SqlServerAdapter())");
 
-            if (tableName != alias)
-                TableNames.Add(adapter.Table(tableName, alias));
+            if (subQuery?.TableNames.Any(x => x == tableName) == true)
+            {
+                var tblCnt = subQuery.TableNames.Where(x => x == tableName).Count();
+                TableNames.Add(new TableValue { TableName = tableName, Alias = $"{ alias }{ tblCnt }", IsSubQuery = operations == SqlOperations.SubQuery });
+            }
             else
-                TableNames.Add(tableName);
+                TableNames.Add(new TableValue { TableName = tableName, Alias = alias, IsSubQuery = operations == SqlOperations.SubQuery });
+
             Adapter = adapter;
             Parameters = new ExpandoObject();
-            CurrentParamIndex = paramCountIndex;
+            CurrentParamIndex = subQuery?.CurrentParamIndex ?? paramCountIndex;
+            SubQuery = subQuery;
+            Operation = operations;
         }
 
         #region helpers
@@ -184,5 +230,12 @@ namespace Dapper.SqlBuilder.Builder
         }
 
         #endregion
+    }
+
+    internal class TableValue
+    {
+        public string TableName { get; set; }
+        public string Alias { get; set; }
+        public bool IsSubQuery { get; set; } = false;
     }
 }

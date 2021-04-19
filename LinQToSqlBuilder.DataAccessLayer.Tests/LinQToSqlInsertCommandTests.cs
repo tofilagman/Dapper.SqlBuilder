@@ -114,13 +114,13 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                           "SELECT " +
                           "@Param1 as [CreatedBy], " +
                           "@Param2 as [CreatedDate], " +
-                          "UsersGroup.[Description] as [Description], " +
-                          "UsersGroup.[Name] as [Name], " +
-                          "UsersGroup.[IsDeleted] as [IsDeleted], " +
-                          "UsersGroup.[IsUndeletable] as [IsUndeletable], " +
-                          "UsersGroup.[Id] as [OriginalId] " +
-                          "FROM UsersGroup " +
-                          "WHERE UsersGroup.[IsDeleted] = @Param3",
+                          "ug.[Description] as [Description], " +
+                          "ug.[Name] as [Name], " +
+                          "ug.[IsDeleted] as [IsDeleted], " +
+                          "ug.[IsUndeletable] as [IsUndeletable], " +
+                          "ug.[Id] as [OriginalId] " +
+                          "FROM UsersGroup ug " +
+                          "WHERE ug.[IsDeleted] = @Param3",
                             query.CommandText);
         }
 
@@ -137,7 +137,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             };
 
             var query = SqlBuilder.Insert(perm);
-            Assert.AreEqual("INSERT INTO permissiongroups ([Name], [ResourcePath], [UserType], [Date], [ID_Perm], [WorkCredit], [ntf]) VALUES (@Param1, @Param2, @Param3, @Param4, @Param5, @Param6, @Param7)", query.CommandText);
+            Assert.AreEqual("INSERT INTO PermissionGroups ([Name], [ResourcePath], [UserType], [Date], [ID_Perm], [WorkCredit], [ntf]) VALUES (@Param1, @Param2, @Param3, @Param4, @Param5, @Param6, @Param7)", query.CommandText);
         }
 
         [Test , Ignore("Obsolete")]

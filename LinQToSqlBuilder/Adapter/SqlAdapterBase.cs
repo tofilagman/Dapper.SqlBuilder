@@ -75,17 +75,18 @@ namespace Dapper.SqlBuilder.Adapter
                .Trim();
         }
 
-        public string UpdateCommand(string updates, string source, string conditions)
+        public string UpdateCommand(string updates, string source, string sourceAlias, string conditions)
         {
-            return $"UPDATE {source} " +
+            return $"UPDATE {sourceAlias} " +
                    $"SET {updates} " +
+                   $"FROM {source} " +
                    $"{conditions}"
                .Trim();
         }
 
-        public string DeleteCommand(string source, string conditions)
+        public string DeleteCommand(string source, string sourceAlias, string conditions)
         {
-            return $"DELETE FROM {source} " +
+            return $"DELETE { sourceAlias } FROM {source} " +
                    $"{conditions}"
                .Trim();
         }

@@ -47,6 +47,7 @@ namespace Dapper.SqlBuilder
         string CommandText { get; }
         IDictionary<string, object> CommandParameters { get; }
         int CurrentParamIndex { get; }
+        List<string> TableNames { get; }
     }
 
     public interface ISqlBuilderResult<T> : ISqlBuilder

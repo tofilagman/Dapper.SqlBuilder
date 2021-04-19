@@ -46,28 +46,29 @@ namespace Dapper.SqlBuilder.Resolver
         private void Update<T>(MemberAssignment assignmentExpression)
         {
             var type = assignmentExpression.Expression.GetType();
+            var tableAlias = GetTableName<T>(true);
 
             if (assignmentExpression.Expression is BinaryExpression expression)
             {
                 switch (assignmentExpression.Expression.NodeType)
                 {
                     case ExpressionType.Add:
-                        Builder.UpdateFieldWithOperation(GetColumnName(expression.Left),
+                        Builder.UpdateFieldWithOperation(tableAlias, GetColumnName(expression.Left),
                                                           GetExpressionValue(expression.Right),
                                                           "+");
                         break;
                     case ExpressionType.Subtract:
-                        Builder.UpdateFieldWithOperation(GetColumnName(expression.Left),
+                        Builder.UpdateFieldWithOperation(tableAlias, GetColumnName(expression.Left),
                                                           GetExpressionValue(expression.Right),
                                                           "-");
                         break;
                     case ExpressionType.Multiply:
-                        Builder.UpdateFieldWithOperation(GetColumnName(expression.Left),
+                        Builder.UpdateFieldWithOperation(tableAlias, GetColumnName(expression.Left),
                                                           GetExpressionValue(expression.Right),
                                                           "*");
                         break;
                     case ExpressionType.Divide:
-                        Builder.UpdateFieldWithOperation(GetColumnName(expression.Left),
+                        Builder.UpdateFieldWithOperation(tableAlias, GetColumnName(expression.Left),
                                                           GetExpressionValue(expression.Right),
                                                           "/");
                         break;
@@ -80,21 +81,21 @@ namespace Dapper.SqlBuilder.Resolver
             {
                 var columnName = GetColumnName(assignmentExpression);
                 var expressionValue = GetExpressionValue(unaryExpression);
-                Builder.UpdateAssignField(columnName, expressionValue);
+                Builder.UpdateAssignField(tableAlias, columnName, expressionValue);
 
                 return;
             }
 
             if (assignmentExpression.Expression is MethodCallExpression mce)
             {
-                ResolveUpdateMethodCall(assignmentExpression, mce); 
+                ResolveUpdateMethodCall(tableAlias, assignmentExpression, mce);
             }
 
             if (assignmentExpression.Expression is MemberExpression memberExpression)
             {
                 var columnName = GetColumnName(assignmentExpression);
                 var expressionValue = GetExpressionValue(memberExpression);
-                Builder.UpdateAssignField(columnName, expressionValue);
+                Builder.UpdateAssignField(tableAlias, columnName, expressionValue);
 
                 return;
             }
@@ -103,33 +104,32 @@ namespace Dapper.SqlBuilder.Resolver
             {
                 var columnName = GetColumnName(assignmentExpression);
                 var expressionValue = GetExpressionValue(constantExpression);
-                Builder.UpdateAssignField(columnName, expressionValue);
+                Builder.UpdateAssignField(tableAlias, columnName, expressionValue);
 
                 return;
             }
         }
 
-        private void ResolveUpdateMethodCall(MemberAssignment assignment, MethodCallExpression callExpression)
+        private void ResolveUpdateMethodCall(string tableAlias, MemberAssignment assignment, MethodCallExpression callExpression)
         {
             var arguments = callExpression.Arguments.Select(GetExpressionValue).ToArray();
             var resolver = StatementResolvers.FirstOrDefault(_ => _.SupportedMethod == callExpression.Method);
-
+            
             if (resolver == null)
             {
                 var columnName = GetColumnName(assignment);
                 var node = ResolveQuery(callExpression);
                 if (node is ValueNode valueNode)
-                    Builder.UpdateAssignField(columnName, valueNode.Value);
+                    Builder.UpdateAssignField(tableAlias, columnName, valueNode.Value);
                 else
                 {
                     var expressionValue = GetExpressionValue(callExpression);
-                    Builder.UpdateAssignField(columnName, expressionValue);
+                    Builder.UpdateAssignField(tableAlias, columnName, expressionValue);
                 }
                 return;
             }
-            //throw new NotSupportedException($"The provided method expression {callExpression.Method.DeclaringType.Name}.{callExpression.Method.Name}() is not supported");
-
-            resolver.ResolveStatement(Builder, callExpression, arguments);
+              
+            resolver.ResolveStatement(tableAlias, Builder, callExpression, arguments);
         }
     }
 }

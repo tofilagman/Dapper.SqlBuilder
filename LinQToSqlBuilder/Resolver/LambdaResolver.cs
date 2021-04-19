@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Dapper.SqlBuilder.Builder;
@@ -83,21 +84,31 @@ namespace Dapper.SqlBuilder.Resolver
                 return $"{memberInfo.Name}";
         }
 
-        public static string GetTableName<T>()
+        public static string GetTableName<T>(bool shortened = false)
         {
-            return GetTableName(typeof(T));
+            return GetTableName(typeof(T), shortened); 
         }
 
-        public static string GetTableName(Type type)
+        public static string GetTableName(Type type, bool shortened = false)
         {
             var tableAttribute = type.GetCustomAttribute<TableAttribute>();
             if (tableAttribute != null)
                 if (string.IsNullOrEmpty(tableAttribute.Schema))
-                    return tableAttribute.Name;
+                    return Shortener(tableAttribute.Name, shortened);
                 else
-                    return $"{tableAttribute.Schema}.{tableAttribute.Name}";
+                    return Shortener($"{tableAttribute.Schema}.{tableAttribute.Name}", shortened);
             else
-                return $"{type.Name}";
+                return Shortener($"{type.Name}", shortened);
+        }
+
+        public static string Shortener(string name, bool shortened)
+        {
+            if (shortened)
+            {
+                var ngd = String.Concat(name.Where(x => Char.IsUpper(x)));
+                return ngd.Length == 0 ? name : ngd.ToLower();
+            }
+            return name;
         }
 
         private static string GetTableName(MemberExpression expression)
@@ -126,8 +137,8 @@ namespace Dapper.SqlBuilder.Resolver
                 case ExpressionType.Constant:
                     var fk = new FakeObject { Data = (expression as ConstantExpression).Value };
                     return Expression.PropertyOrField(Expression.Constant(fk), nameof(FakeObject.Data));
-                //case ExpressionType.New:
-                //    return GetMemberExpression((expression as NewExpression).Members);
+                    //case ExpressionType.New:
+                    //    return GetMemberExpression((expression as NewExpression).Members);
             }
 
             throw new ArgumentException("Member expression expected");

@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
 using Dapper.SqlBuilder.Adapter;
 using Dapper.SqlBuilder.Extensions;
+using Dapper.SqlBuilder.Resolver;
 using Dapper.SqlBuilder.ValueObjects;
 
 namespace Dapper.SqlBuilder.Builder
@@ -15,24 +18,49 @@ namespace Dapper.SqlBuilder.Builder
         public void Join(string originalTableName, string joinTableName, string leftField, string rightField, JoinType joinType)
         {
             var join = GetJoinExpression(joinType);
-            var joinString =
-                $"{join} {Adapter.Table(joinTableName)} " +
-                $"ON {Adapter.Field(originalTableName, leftField)} = {Adapter.Field(joinTableName, rightField)}";
+            var joinAlias = LambdaResolver.Shortener(joinTableName, true);
 
-            TableNames.Add(joinTableName);
+            var joinString =
+                $"{join} { joinAlias } " +
+                $"ON {Adapter.Field(originalTableName, leftField)} = {Adapter.Field(joinAlias, rightField)}";
+
+            TableNames.Add(new TableValue { TableName = joinTableName, Alias = joinAlias });
             JoinExpressions.Add(joinString);
             SplitColumns.Add(rightField);
         }
 
-        public void Join(string joinTableName, string commandText, JoinType joinType)
+        public void Join(string joinTableName, SqlQueryBuilder joinQuery, JoinType joinType)
         {
-            var join = GetJoinExpression(joinType);
-            var joinString =
-                $"{join} {Adapter.Table(joinTableName)} " +
-                $"ON {commandText}";
+            joinQuery.TableNames.AddRange(TableNames);
 
-            TableNames.Add(joinTableName);
+            var join = GetJoinExpression(joinType);
+            var joinAlias = LambdaResolver.Shortener(joinTableName, true);
+
+            if (TableNames.Any(x => x.TableName == joinTableName))
+            {
+                var cnt = TableNames.Where(x => x.TableName == joinTableName).Count();
+                TableNames.Add(new TableValue { TableName = joinTableName, Alias = $"{joinAlias}{ cnt }" });
+            }
+            else
+                TableNames.Add(new TableValue { TableName = joinTableName, Alias = joinAlias });
+
+            var joinString =
+               $"{join} { joinTableName } { joinAlias } " +
+               $"ON { joinQuery.WhereCommandText }";
+
             JoinExpressions.Add(joinString);
+        }
+
+        public void Join<T1, T2>(string joinTableName, SqlJoinBuilder<T1, T2> joinBuilder, Expression<Func<T1, T2, bool>> expression, JoinType joinType)
+        {
+            joinBuilder.Builder.TableNames.AddRange(TableNames);
+            var joinQuery = joinBuilder.Build(expression).Builder;
+
+            foreach (var p in joinBuilder.CommandParameters)
+                Parameters.Add(p);
+            CurrentParamIndex = joinBuilder.CurrentParamIndex;
+
+            Join(joinTableName, joinQuery, joinType);
         }
 
         private string GetJoinExpression(JoinType joinType)
@@ -62,7 +90,7 @@ namespace Dapper.SqlBuilder.Builder
 
         public void OrderBy(string tableName, string fieldName, bool desc = false)
         {
-            var order = Adapter.Field(tableName, fieldName);
+            var order = Adapter.Field(GetTableAlias(tableName), fieldName);
             if (desc)
                 order += " DESC";
 
@@ -71,75 +99,82 @@ namespace Dapper.SqlBuilder.Builder
 
         public void Select(string tableName)
         {
-            var selectionString = $"{Adapter.Table(tableName)}.*";
+            var selectionString = $"{ GetTableAlias(tableName) }.*";
             SelectionList.Add(selectionString);
         }
 
         public void Select(string tableName, string fieldName)
         {
-            SelectionList.Add(Adapter.Field(tableName, fieldName));
+            SelectionList.Add(Adapter.Field(GetTableAlias(tableName), fieldName));
         }
 
         public void Select(string tablename, string fieldName, string alias)
         {
+            var tableAlias = GetTableAlias(tablename);
             if (string.IsNullOrEmpty(alias) || fieldName == alias)
-                Select(tablename, fieldName);
+                Select(tableAlias, fieldName);
             else
-                SelectionList.Add($"{ Adapter.Field(tablename, fieldName) } { Adapter.Alias(alias) }");
+                SelectionList.Add($"{ Adapter.Field(tableAlias, fieldName) } { Adapter.Alias(alias) }");
         }
 
         public void SelectFormat(string tableName, string fieldName, string alias, string format)
         {
+            var tableAlias = GetTableAlias(tableName);
             if (string.IsNullOrEmpty(alias) || fieldName == alias)
-                SelectionList.Add($"{ Adapter.Format() }({ Adapter.Field(tableName, fieldName) }, '{ format }') { Adapter.Alias(fieldName) }");
+                SelectionList.Add($"{ Adapter.Format() }({ Adapter.Field(tableAlias, fieldName) }, '{ format }') { Adapter.Alias(fieldName) }");
             else
-                SelectionList.Add($"{ Adapter.Format() }({ Adapter.Field(tableName, fieldName) }, '{ format }') { Adapter.Alias(alias) }");
+                SelectionList.Add($"{ Adapter.Format() }({ Adapter.Field(tableAlias, fieldName) }, '{ format }') { Adapter.Alias(alias) }");
         }
 
         public void SelectIsNull(string tableName, string fieldName, string alias, object nullValue)
         {
+            var tableAlias = GetTableAlias(tableName);
             if (string.IsNullOrEmpty(alias) || fieldName == alias)
-                SelectionList.Add($"{ Adapter.IsNull() }({ Adapter.Field(tableName, fieldName) }, { nullValue.SafeValue(Adapter.CurrentDate()) }) { Adapter.Alias(fieldName) }");
+                SelectionList.Add($"{ Adapter.IsNull() }({ Adapter.Field(tableAlias, fieldName) }, { nullValue.SafeValue(Adapter.CurrentDate()) }) { Adapter.Alias(fieldName) }");
             else
-                SelectionList.Add($"{ Adapter.IsNull() }({ Adapter.Field(tableName, fieldName) }, { nullValue.SafeValue(Adapter.CurrentDate()) }) { Adapter.Alias(alias) }");
+                SelectionList.Add($"{ Adapter.IsNull() }({ Adapter.Field(tableAlias, fieldName) }, { nullValue.SafeValue(Adapter.CurrentDate()) }) { Adapter.Alias(alias) }");
         }
 
         public void SelectIsNull(string tableName, string fieldName, string alias, string nullValue, string nullTableName)
         {
+            var tableAlias = GetTableAlias(tableName);
             if (string.IsNullOrEmpty(alias) || fieldName == alias)
-                SelectionList.Add($"{ Adapter.IsNull() }({ Adapter.Field(tableName, fieldName) }, { Adapter.Field(nullTableName, nullValue) }) { Adapter.Alias(fieldName) }");
+                SelectionList.Add($"{ Adapter.IsNull() }({ Adapter.Field(tableAlias, fieldName) }, { Adapter.Field(nullTableName, nullValue) }) { Adapter.Alias(fieldName) }");
             else
-                SelectionList.Add($"{ Adapter.IsNull() }({ Adapter.Field(tableName, fieldName) }, { Adapter.Field(nullTableName, nullValue) }) { Adapter.Alias(alias) }");
+                SelectionList.Add($"{ Adapter.IsNull() }({ Adapter.Field(tableAlias, fieldName) }, { Adapter.Field(nullTableName, nullValue) }) { Adapter.Alias(alias) }");
         }
 
         public void SelectConcatSql(string tableName, string fieldName, string alias, IEnumerable<string> values)
         {
+            var tableAlias = GetTableAlias(tableName);
             if (string.IsNullOrEmpty(alias) || fieldName == alias)
-                SelectionList.Add($"{ Adapter.Concat() }({ Adapter.Field(tableName, fieldName) }, { string.Join(", ", values) }) { Adapter.Alias(fieldName) }");
+                SelectionList.Add($"{ Adapter.Concat() }({ Adapter.Field(tableAlias, fieldName) }, { string.Join(", ", values) }) { Adapter.Alias(fieldName) }");
             else
-                SelectionList.Add($"{ Adapter.Concat() }({ Adapter.Field(tableName, fieldName) }, { string.Join(", ", values) }) { Adapter.Alias(alias) }");
+                SelectionList.Add($"{ Adapter.Concat() }({ Adapter.Field(tableAlias, fieldName) }, { string.Join(", ", values) }) { Adapter.Alias(alias) }");
         }
 
         public void Select(string tableName, string fieldName, SelectFunctionType selectFunction)
         {
             var selectionString = string.Empty;
+            var tableAlias = GetTableAlias(tableName);
             if (selectFunction == SelectFunctionType.CUSTOM)
             {
                 selectionString = Adapter.Field(fieldName);
             }
             else
-                selectionString = $"{selectFunction}({Adapter.Field(tableName, fieldName)})";
+                selectionString = $"{selectFunction}({Adapter.Field(tableAlias, fieldName)})";
 
             SelectionList.Add(selectionString);
         }
 
         public void Select(string tableName, string fieldName, string alias, SelectFunctionType selectFunction)
         {
+            var tableAlias = GetTableAlias(tableName);
             if (string.IsNullOrEmpty(alias) || fieldName == alias)
-                Select(tableName, fieldName, selectFunction);
+                Select(tableAlias, fieldName, selectFunction);
             else
             {
-                var selectionString = $"{selectFunction}({Adapter.Field(tableName, fieldName)}) {Adapter.Alias(alias)}";
+                var selectionString = $"{selectFunction}({Adapter.Field(tableAlias, fieldName)}) {Adapter.Alias(alias)}";
                 SelectionList.Add(selectionString);
             }
         }
@@ -164,7 +199,7 @@ namespace Dapper.SqlBuilder.Builder
 
         public void GroupBy(string tableName, string fieldName)
         {
-            GroupByList.Add(Adapter.Field(tableName, fieldName));
+            GroupByList.Add(Adapter.Field(GetTableAlias(tableName), fieldName));
         }
 
         public void SkipPages(int skipPages)

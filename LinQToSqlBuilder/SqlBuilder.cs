@@ -221,12 +221,12 @@ namespace Dapper.SqlBuilder
 
         public static ISqlBuilder<T> SelectFunction<T>(string functionStatement, Expression<Func<T, object>> expression, params object[] args)
         {
-            return new SqlBuilder<T>(functionStatement).SelectFunction(functionStatement, expression, args);
+            return new SqlBuilder<T>(functionStatement, isFunctionQuery: true).SelectFunction(functionStatement, expression, args);
         }
 
         public static ISqlBuilder<T> SubQuery<T>(ISqlBuilder<T> subQuery)
         {
-           return new SqlBuilder<T>(subQuery);
+            return new SqlBuilder<T>(subQuery);
         }
     }
 
@@ -236,14 +236,10 @@ namespace Dapper.SqlBuilder
     /// <typeparam name="T">The type of entity that associates to the table, used to perform the table and field name resolution</typeparam>
     public partial class SqlBuilder<T> : SqlBuilderBase, ISqlBuilder<T>, ISqlBuilderResult<T>
     {
-        public SqlBuilder(string tableName, int paramCount = 0)
+        public SqlBuilder(string tableName, int paramCount = 0, bool isFunctionQuery = false)
         {
-            var alias = LambdaResolver.GetTableName<T>();
-            if (alias == tableName)
-                Builder = new SqlQueryBuilder(tableName, DefaultAdapter, paramCount);
-            else
-                Builder = new SqlQueryBuilder(tableName, alias, DefaultAdapter, paramCount);
-
+            var alias = isFunctionQuery ? LambdaResolver.GetTableName<T>(true) : LambdaResolver.Shortener(tableName, true);
+            Builder = new SqlQueryBuilder(tableName, alias, DefaultAdapter, null, paramCount);
             Resolver = new LambdaResolver(Builder);
         }
 
@@ -262,10 +258,12 @@ namespace Dapper.SqlBuilder
             Resolver = resolver;
         }
 
-        internal SqlBuilder(ISqlBuilder builder): this(LambdaResolver.GetTableName<T>(), builder.CurrentParamIndex)
+        internal SqlBuilder(ISqlBuilder builder)
         {
-            Builder.SubQuery = builder;
-            Builder.Operation = SqlOperations.SubQuery;
+            var tblName = LambdaResolver.GetTableName<T>();
+            var alias = LambdaResolver.Shortener(tblName, true);
+            Builder = new SqlQueryBuilder(tblName, alias, DefaultAdapter, builder, builder.CurrentParamIndex, SqlOperations.SubQuery);
+            Resolver = new LambdaResolver(Builder);
         }
 
         public ISqlBuilder<T> Where(Expression<Func<T, bool>> expression)
@@ -487,7 +485,7 @@ namespace Dapper.SqlBuilder
             Resolver.SelectWithFunction(expression, SelectFunctionType.AVG);
             return this;
         }
-         
+
         public ISqlBuilder<T> GroupBy(Expression<Func<T, object>> expression)
         {
             Resolver.GroupBy(expression);
@@ -495,7 +493,7 @@ namespace Dapper.SqlBuilder
         }
 
         public ISqlBuilder<T> SelectFunction<TResult>(string functionStatement, Expression<Func<T, TResult>> expression, params object[] args)
-        { 
+        {
             Resolver.SelectWithFunction(functionStatement, expression, args);
             return this;
         }
@@ -550,6 +548,16 @@ namespace Dapper.SqlBuilder
         }
 
         public int CurrentParamIndex => LastCount;
+
+        public List<string> TableNames
+        {
+            get
+            {
+                if (sqlBuilders.Count == 0)
+                    return new List<string>();
+                return sqlBuilders.SelectMany(x => x.TableNames).ToList();
+            }
+        }
     }
 
     public class SqlBuilderUnionCollection<TResult> : ISqlBuilderResult<TResult>
@@ -613,6 +621,16 @@ namespace Dapper.SqlBuilder
         }
 
         public int CurrentParamIndex => LastCount;
+
+        public List<string> TableNames
+        {
+            get
+            {
+                if (sqlBuilders.Count == 0)
+                    return new List<string>();
+                return sqlBuilders.SelectMany(x => x.TableNames).ToList();
+            }
+        }
     }
 
     public class SqlBuilderMultiple<T> : ISqlBuilderResult<T>
@@ -694,6 +712,16 @@ namespace Dapper.SqlBuilder
         }
 
         public int CurrentParamIndex => LastCount;
+
+        public List<string> TableNames
+        {
+            get
+            {
+                if (sqlBuilders.Count == 0)
+                    return new List<string>();
+                return sqlBuilders.SelectMany(x => x.TableNames).ToList();
+            }
+        }
     }
 
     class SqlJoinBuilder<T1, T2> : SqlBuilderBase

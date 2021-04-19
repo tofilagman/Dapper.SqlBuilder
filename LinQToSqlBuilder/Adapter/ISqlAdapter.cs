@@ -20,9 +20,9 @@ namespace Dapper.SqlBuilder.Adapter
         string InsertFromCommand(string target, string source, List<Dictionary<string, object>> values,
                                  string conditions);
 
-        string UpdateCommand(string updates, string source, string conditions);
+        string UpdateCommand(string updates, string source,  string sourceAlias, string conditions);
 
-        string DeleteCommand(string source, string conditions);
+        string DeleteCommand(string source, string sourceAlias, string conditions);
 
         string Table(string tableName);
 
