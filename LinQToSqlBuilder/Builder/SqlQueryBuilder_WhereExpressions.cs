@@ -73,7 +73,7 @@ namespace Dapper.SqlBuilder.Builder
             WhereConditions.Add(newCondition);
             AddParameter(paramId, fieldValue);
         }
-
+          
         public void QueryByFieldNull(string tableName, string fieldName)
         {
             WhereConditions.Add(string.Format("{0} IS NULL", Adapter.Field(GetTableAlias(tableName), fieldName)));

@@ -1,4 +1,6 @@
-﻿namespace Dapper.SqlBuilder.Adapter
+﻿using Dapper.SqlBuilder.ValueObjects;
+
+namespace Dapper.SqlBuilder.Adapter
 {
     public class SqlServerAdapter : SqlServerAdapterBase, ISqlAdapter
     {
@@ -10,6 +12,11 @@
         public string CurrentDate()
         {
             return "GETDATE()";
+        }
+
+        public string DatePart(string column, DatePart datePart)
+        {
+            return $"DATEPART({ datePart }, { column })";
         }
 
         public string Format()

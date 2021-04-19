@@ -67,7 +67,14 @@ namespace Dapper.SqlBuilder.Resolver
                     break;
                 case ExpressionType.Convert:
                 case ExpressionType.MemberAccess:
-                    Select<T>(GetMemberExpression(expression));
+                    if (ParseMethodCallExpression(expression, out var mace))
+                    {
+                        SelectWithSqlFunctionCall(mace as MethodCallExpression, null);
+                    }
+                    else
+                    {
+                        Select<T>(mace);
+                    }
                     break;
                 case ExpressionType.New:
                     var nxprs = (expression as NewExpression);
@@ -328,6 +335,14 @@ namespace Dapper.SqlBuilder.Resolver
                         return;
                     }
                 }
+            }
+
+            if (mce.Method.Name == nameof(Extensions.TypeExtensions.DatePartSql))
+            {
+                var column = GetColumnName(mce);
+                var partValue = (DatePart)GetExpressionValue(mce.Arguments[1]);
+                Builder.SelectDatePartSql(GetTableName(mce), column, alias, partValue);
+                return;
             }
 
             throw new Exception("Use As<> extension to map type differences");

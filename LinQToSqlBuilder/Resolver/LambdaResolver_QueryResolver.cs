@@ -80,6 +80,20 @@ namespace Dapper.SqlBuilder.Resolver
                 };
             }
 
+            if (Enum.TryParse(callExpression.Method.Name, true, out NullMethod nullFunction))
+            {
+                var member = callExpression.Object as MemberExpression ?? callExpression.Arguments[0];
+                return new NullNode
+                {
+                    MemberNode = new MemberNode
+                    {
+                        TableName = GetTableName(member),
+                        FieldName = GetColumnName(member)
+                    },
+                    Method = nullFunction
+                };
+            }
+
             var value = ResolveMethodCall(callExpression);
             return new ValueNode
             {
@@ -181,10 +195,10 @@ namespace Dapper.SqlBuilder.Resolver
                             var value = ResolveValue((dynamic)memberExpr.Member, null);
                             return value;
                         }
-                         
+
                         var obj = GetExpressionValue(memberExpr.Expression);
-                        return ResolveValue((dynamic)memberExpr.Member, obj); 
-                    }
+                        return ResolveValue((dynamic)memberExpr.Member, obj);
+                    } 
                     throw new ArgumentException("Invalid expression");
                 case ExpressionType.Convert:
                     if (expression is UnaryExpression convertExpression)

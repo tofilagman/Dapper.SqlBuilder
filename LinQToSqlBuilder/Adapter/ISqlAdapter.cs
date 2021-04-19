@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Dapper.SqlBuilder.ValueObjects;
+using System.Collections.Generic;
 
 namespace Dapper.SqlBuilder.Adapter
 {
@@ -42,6 +43,8 @@ namespace Dapper.SqlBuilder.Adapter
         string IsNull();
         string Format();
         string Concat();
+
+        string DatePart(string column, DatePart datePart);
     }
 
     enum SqlOperations

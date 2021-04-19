@@ -91,21 +91,36 @@ namespace Dapper.SqlBuilder.Extensions
             return nullValue;
         }
 
-        public static T EqNullSql<T>(this T value)
-        {
-            return value;
-        }
+        public static bool EqNullSql<T>(this T value) => true;
+        public static bool EqNullSql<T>(this T? value) where T : struct => true;
+
+        public static bool EqNotNullSql<T>(this T value) => false;
+        public static bool EqNotNullSql<T>(this T? value) where T : struct => false;
 
         public static string ConcatSql<T>(this T value, params object[] args)
         {
             return string.Join(' ', args);
         }
 
-        public static int DatePartSql<T>(this T value, DatePart datePart)
+        public static int DatePartSql(this DateTime value, DatePart datePart)
         {
             return 0;
         }
 
+        public static int DatePartSql(this DateTime? value, DatePart datePart)
+        {
+            return 0;
+        }
+
+        public static int DatePartSql(this DateTimeOffset value, DatePart datePart)
+        {
+            return 0;
+        }
+
+        public static int DatePartSql(this DateTimeOffset? value, DatePart datePart)
+        {
+            return 0;
+        }
 
         internal static string SafeValue<T>(this T obj, string specialFunc = null)
         {

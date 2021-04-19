@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dapper.SqlBuilder.ValueObjects;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,7 +27,7 @@ namespace Dapper.SqlBuilder.Adapter
         {
             if (pageIndex == 0 && pageSize > 0)
                 return $"SELECT {selection} FROM {source} {conditions} {order} LIMIT {pageSize}";
-             
+
             return
                 $"SELECT {selection} FROM {source} {conditions} {order}  LIMIT {pageIndex}, {pageSize}";
         }
@@ -62,7 +63,7 @@ namespace Dapper.SqlBuilder.Adapter
             }
 
             return
-                $"INSERT INTO {target} ({string.Join(", ", fieldsToInsert)}) " + 
+                $"INSERT INTO {target} ({string.Join(", ", fieldsToInsert)}) " +
                 $"VALUES ({string.Join("), (", valuesToInsert)}) " +
                 (
                     !string.IsNullOrEmpty(output)
@@ -96,6 +97,24 @@ namespace Dapper.SqlBuilder.Adapter
         {
             return "CONCAT";
         }
-         
+
+        public string DatePart(string column, DatePart datePart)
+        {
+            return datePart switch
+            {
+                ValueObjects.DatePart.YEAR => $"YEAR({ column })",
+                ValueObjects.DatePart.MONTH => $"MONTH({ column })",
+                ValueObjects.DatePart.DAY => $"DAY({ column })",
+                ValueObjects.DatePart.DAYOFYEAR => $"DAYOFYEAR({ column })",
+                ValueObjects.DatePart.HOUR => $"HOUR({ column })",
+                ValueObjects.DatePart.MINUTE => $"MINUTE({ column })",
+                ValueObjects.DatePart.SECOND => $"SECOND({ column })",
+                ValueObjects.DatePart.MILLISECOND => $"MILLISECOND({ column })",
+                ValueObjects.DatePart.MICROSECOND => $"MICROSECOND({ column })",
+                ValueObjects.DatePart.WEEK => $"WEEK({ column })",
+                ValueObjects.DatePart.WEEKDAY => $"WEEKDAY({ column })",
+                _ => throw new InvalidOperationException("Specified DatePart is not supported")
+            };
+        }
     }
 }

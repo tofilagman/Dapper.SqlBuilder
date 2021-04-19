@@ -16,16 +16,16 @@
 
     public enum DatePart
     {
-        YEAR,
-        MONTH,
-        DAY,
-        DAYOFYEAR,
-        HOUR,
-        MINUTE,
-        SECOND,
-        MILLISECOND,
-        MICROSECOND,
-        WEEK,
-        WEEKDAY
+        YEAR = 1,
+        MONTH = 2,
+        DAY = 3,
+        DAYOFYEAR = 4,
+        HOUR = 5,
+        MINUTE = 6,
+        SECOND = 7,
+        MILLISECOND = 8,
+        MICROSECOND = 9,
+        WEEK = 10,
+        WEEKDAY = 11
     }
 }

@@ -153,6 +153,15 @@ namespace Dapper.SqlBuilder.Builder
                 SelectionList.Add($"{ Adapter.Concat() }({ Adapter.Field(tableAlias, fieldName) }, { string.Join(", ", values) }) { Adapter.Alias(alias) }");
         }
 
+        public void SelectDatePartSql(string tableName, string fieldName, string alias, DatePart datePart)
+        {
+            var tableAlias = GetTableAlias(tableName);
+            if (string.IsNullOrEmpty(alias) || fieldName == alias)
+                SelectionList.Add($"{ Adapter.DatePart(Adapter.Field(tableAlias, fieldName), datePart) } { Adapter.Alias(fieldName) }");
+            else
+                SelectionList.Add($"{ Adapter.DatePart(Adapter.Field(tableAlias, fieldName), datePart) } { Adapter.Alias(alias) }");
+        }
+
         public void Select(string tableName, string fieldName, SelectFunctionType selectFunction)
         {
             var selectionString = string.Empty;

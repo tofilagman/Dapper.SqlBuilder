@@ -5,6 +5,7 @@ using System.Text;
 using Dapper.SqlBuilder;
 using Dapper.SqlBuilder.Adapter;
 using Dapper.SqlBuilder.Extensions;
+using Dapper.SqlBuilder.ValueObjects;
 using LinQToSqlBuilder.DataAccessLayer.Tests.Base;
 using LinQToSqlBuilder.DataAccessLayer.Tests.Entities;
 using NUnit.Framework;
@@ -183,7 +184,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                             "WHERE u.[Email] = @Param1 " +
                             "AND ug.[Id] = @Param2",
                             query2.CommandText);
-             
+
         }
 
         [Test]
@@ -698,7 +699,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         [Test]
         public void TestSubQuery()
         {
-            var sq = SqlBuilder.Select<UserGroup>().Where(x=> x.ID_FilingStatus == FilingStatus.Approved);
+            var sq = SqlBuilder.Select<UserGroup>().Where(x => x.ID_FilingStatus == FilingStatus.Approved);
             var nsd = SqlBuilder.SubQuery(sq).Where(x => x.Id == 2);
 
             Assert.AreEqual("SELECT ug1.* FROM ( SELECT ug.* FROM UsersGroup ug WHERE ug.[ID_FilingStatus] = @Param1 ) ug1 WHERE ug1.[Id] = @Param2", nsd.CommandText);
@@ -709,7 +710,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         {
             var sq = SqlBuilder.Select<UserGroup>().Where(x => x.ID_FilingStatus == FilingStatus.Approved);
             var nsd = SqlBuilder.SubQuery(sq).Where(x => x.Id == 2)
-                        .LeftJoin<UserUserGroup>((x, y)=> x.Id == y.UserGroupId);
+                        .LeftJoin<UserUserGroup>((x, y) => x.Id == y.UserGroupId);
 
             Assert.AreEqual("SELECT ug1.*, uug.* FROM ( SELECT ug.* FROM UsersGroup ug WHERE ug.[ID_FilingStatus] = @Param1 ) ug1 LEFT JOIN UsersUserGroup uug ON ug1.[Id] = uug.[UserGroupId] WHERE ug1.[Id] = @Param2", nsd.CommandText);
         }
@@ -724,7 +725,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         [Test]
         public void TestSelectWithColumn()
         {
-            var qry = SqlBuilder.Select<UserGroup>(x=> new { x.Id, x.ID_FilingStatus });
+            var qry = SqlBuilder.Select<UserGroup>(x => new { x.Id, x.ID_FilingStatus });
             Assert.AreEqual("SELECT ug.[Id], ug.[ID_FilingStatus] FROM UsersGroup ug", qry.CommandText);
         }
 
@@ -739,8 +740,34 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
         [Test]
         public void TestSelectWhere()
         {
-            var qry = SqlBuilder.Select<UserGroup>().Where(x=> x.ID_FilingStatus == FilingStatus.Approved);
+            var qry = SqlBuilder.Select<UserGroup>().Where(x => x.ID_FilingStatus == FilingStatus.Approved);
             Assert.AreEqual("SELECT ug.* FROM UsersGroup ug WHERE ug.[ID_FilingStatus] = @Param1", qry.CommandText);
+        }
+
+        [Test]
+        public void TestSelectDatePart()
+        {
+            var qry = SqlBuilder.Select<UserGroup>(x => x.ModifiedDate.DatePartSql(DatePart.WEEKDAY))
+                .Where(x => x.ID_FilingStatus == FilingStatus.Approved);
+            Assert.AreEqual("SELECT DATEPART(WEEKDAY, ug.[ModifiedDate]) [ModifiedDate] FROM UsersGroup ug WHERE ug.[ID_FilingStatus] = @Param1", qry.CommandText);
+        }
+
+        [Test]
+        public void TestSelectDatePart2()
+        {
+            var qry = SqlBuilder.Select<UserGroup>(x => new
+            {
+                Date = x.ModifiedDate.DatePartSql(DatePart.WEEKDAY)
+            })
+                .Where(x => x.ID_FilingStatus == FilingStatus.Approved);
+            Assert.AreEqual("SELECT DATEPART(WEEKDAY, ug.[ModifiedDate]) [Date] FROM UsersGroup ug WHERE ug.[ID_FilingStatus] = @Param1", qry.CommandText);
+        }
+
+        [Test]
+        public void TestEqualsNull()
+        {
+            var qry = SqlBuilder.Select<UserGroup>().Where(x => x.Id.EqNullSql());
+            Assert.AreEqual("SELECT ug.* FROM UsersGroup ug WHERE ug.[Id] IS NULL", qry.CommandText);
         }
     }
 }

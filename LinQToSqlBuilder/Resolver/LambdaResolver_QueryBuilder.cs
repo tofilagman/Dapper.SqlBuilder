@@ -71,6 +71,19 @@ namespace Dapper.SqlBuilder.Resolver
             BuildSql(node.Child);
         }
 
+        void BuildSql(NullNode node)
+        {
+            switch (node.Method)
+            {
+                case NullMethod.EqNullSql:
+                    Builder.QueryByFieldNull(node.MemberNode.TableName, node.MemberNode.FieldName);
+                    break;
+                case NullMethod.EqNotNullSql:
+                    Builder.QueryByFieldNotNull(node.MemberNode.TableName, node.MemberNode.FieldName);
+                    break;
+            } 
+        }
+
         void BuildSql(MemberNode memberNode, ValueNode valueNode, ExpressionType op)
         {
             if (valueNode.Value == null)

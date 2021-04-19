@@ -86,7 +86,7 @@ namespace Dapper.SqlBuilder.Resolver
 
         public static string GetTableName<T>(bool shortened = false)
         {
-            return GetTableName(typeof(T), shortened); 
+            return GetTableName(typeof(T), shortened);
         }
 
         public static string GetTableName(Type type, bool shortened = false)
@@ -137,11 +137,36 @@ namespace Dapper.SqlBuilder.Resolver
                 case ExpressionType.Constant:
                     var fk = new FakeObject { Data = (expression as ConstantExpression).Value };
                     return Expression.PropertyOrField(Expression.Constant(fk), nameof(FakeObject.Data));
-                    //case ExpressionType.New:
-                    //    return GetMemberExpression((expression as NewExpression).Members);
+                case ExpressionType.Call:
+                    var mce = (expression as MethodCallExpression);
+                    return GetMemberExpression(mce.Arguments[0]);
             }
 
             throw new ArgumentException("Member expression expected");
+        }
+
+        private static bool ParseMethodCallExpression(Expression expression, out Expression mce)
+        {
+            switch (expression.NodeType)
+            {
+                case ExpressionType.MemberAccess:
+                    mce = expression;
+                    return false;
+                case ExpressionType.Convert:
+                    return ParseMethodCallExpression((expression as UnaryExpression)?.Operand, out mce);
+                case ExpressionType.Lambda:
+                    return ParseMethodCallExpression((expression as LambdaExpression).Body, out mce);
+                case ExpressionType.Constant:
+                    var fk = new FakeObject { Data = (expression as ConstantExpression).Value };
+                    mce = Expression.PropertyOrField(Expression.Constant(fk), nameof(FakeObject.Data));
+                    return false;
+                case ExpressionType.Call:
+                    mce = expression;
+                    return true;
+            }
+
+            mce = expression;
+            return false;
         }
 
         #endregion
