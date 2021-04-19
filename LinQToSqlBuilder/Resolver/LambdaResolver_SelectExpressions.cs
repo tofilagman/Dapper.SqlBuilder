@@ -330,6 +330,20 @@ namespace Dapper.SqlBuilder.Resolver
                 }
             }
 
+            //if(mce.Method.Name == nameof(Extensions.TypeExtensions.EqNullSql))
+            //{
+            //    var column = GetColumnName(mce); 
+            //    Builder.SelectEqNull(GetTableName(mce), column, alias);
+            //    return;
+            //}
+
+            //if (mce.Method.Name == nameof(Extensions.TypeExtensions.EqNotNullSql))
+            //{
+            //    var column = GetColumnName(mce);
+            //    Builder.SelectEqNotNull(GetTableName(mce), column, alias);
+            //    return;
+            //}
+
             throw new Exception("Use As<> extension to map type differences");
         }
 

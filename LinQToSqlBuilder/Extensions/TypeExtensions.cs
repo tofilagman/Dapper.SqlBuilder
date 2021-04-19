@@ -96,6 +96,11 @@ namespace Dapper.SqlBuilder.Extensions
             return value;
         }
 
+        public static T EqNotNullSql<T>(this T value)
+        {
+            return value;
+        }
+
         public static string ConcatSql<T>(this T value, params object[] args)
         {
             return string.Join(' ', args);
