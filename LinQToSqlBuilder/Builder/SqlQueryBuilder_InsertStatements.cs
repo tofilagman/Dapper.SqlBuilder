@@ -10,7 +10,9 @@ namespace Dapper.SqlBuilder.Builder
     {
         public void InsertTo<TTo>()
         {
-            TableNames.Add(LambdaResolver.GetTableName<TTo>());
+            var tblName = LambdaResolver.GetTableName<TTo>();
+            var alias = LambdaResolver.Shortener(tblName, true);
+            TableNames.Add(new TableValue { TableName = tblName, Alias = alias });
         }
 
         /// <summary>
@@ -29,7 +31,7 @@ namespace Dapper.SqlBuilder.Builder
                     AddParameter(paramId, value);
                     updateValue = $"{Adapter.Parameter(paramId)}";
                     break;
-                
+
                 default:
                     throw new NotSupportedException();
             }
@@ -49,7 +51,7 @@ namespace Dapper.SqlBuilder.Builder
         {
             var lastInsertRecord = InsertValues.LastOrDefault() ?? NextInsertRecord();
 
-            var updateValue = $"{Adapter.Field(sourceTableName, sourceFieldName)}";
+            var updateValue = $"{Adapter.Field(GetTableAlias(sourceTableName), sourceFieldName)}";
 
             lastInsertRecord.Add(Adapter.Field(fieldName), updateValue);
         }

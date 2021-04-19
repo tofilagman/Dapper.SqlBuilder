@@ -20,6 +20,18 @@ namespace Dapper.SqlBuilder.Adapter
                .Trim();
         }
 
+        public string SubQueryString(string subQuery,
+                                  string selection,
+                                  string source,
+                                  string conditions,
+                                  string order = "",
+                                  string grouping = "",
+                                  string having = "")
+        {
+            return $"SELECT {selection} FROM (\r\n {subQuery} \r\n) {source} {conditions} {order} {grouping} {having}"
+               .Trim();
+        }
+
         public virtual string InsertCommand(string target, List<Dictionary<string, object>> values, string output = "")
         {
             var fieldsToInsert = values.First()
@@ -63,17 +75,18 @@ namespace Dapper.SqlBuilder.Adapter
                .Trim();
         }
 
-        public string UpdateCommand(string updates, string source, string conditions)
+        public string UpdateCommand(string updates, string source, string sourceAlias, string conditions)
         {
-            return $"UPDATE {source} " +
+            return $"UPDATE {sourceAlias} " +
                    $"SET {updates} " +
+                   $"FROM {source} " +
                    $"{conditions}"
                .Trim();
         }
 
-        public string DeleteCommand(string source, string conditions)
+        public string DeleteCommand(string source, string sourceAlias, string conditions)
         {
-            return $"DELETE FROM {source} " +
+            return $"DELETE { sourceAlias } FROM {source} " +
                    $"{conditions}"
                .Trim();
         }

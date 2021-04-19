@@ -30,12 +30,13 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             })
                                   .Where(user => user.Id == userId);
 
-            Assert.AreEqual("UPDATE [Users] " +
+            Assert.AreEqual("UPDATE u " +
                             "SET " +
-                            "[Email] = REPLACE([Email], @Param1, @Param2), " +
-                            "[LastChangePassword] = @Param3, " +
-                            "[FailedLogIns] = [FailedLogIns] - @Param4 " +
-                            "WHERE [Users].[Id] = @Param5",
+                            "u.[Email] = REPLACE(u.[Email], @Param1, @Param2), " +
+                            "u.[LastChangePassword] = @Param3, " +
+                            "u.[FailedLogIns] = u.[FailedLogIns] - @Param4 " +
+                            "FROM Users u " +
+                            "WHERE u.[Id] = @Param5",
                             query.CommandText);
         }
 
@@ -50,7 +51,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             })
               .Where(x => x.Guid == Guid.NewGuid());
 
-            Assert.AreEqual("UPDATE [userlog] SET [DateSlide] = @Param1 WHERE [userlog].[Guid] = @Param2", query.CommandText);
+            Assert.AreEqual("UPDATE ul SET ul.[DateSlide] = @Param1 FROM UserLog ul WHERE ul.[Guid] = @Param2", query.CommandText);
         }
 
         [Test]
@@ -68,7 +69,7 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
                 IsUndeletable = !undelete
             });
 
-            Assert.AreEqual("UPDATE [UsersGroup] SET [CreatedBy] = @Param1, [CreatedDate] = @Param2, [Description] = @Param3, [Name] = @Param4, [ID_FilingStatus] = @Param5, [IsDeleted] = @Param6, [IsUndeletable] = @Param7",
+            Assert.AreEqual("UPDATE ug SET ug.[CreatedBy] = @Param1, ug.[CreatedDate] = @Param2, ug.[Description] = @Param3, ug.[Name] = @Param4, ug.[ID_FilingStatus] = @Param5, ug.[IsDeleted] = @Param6, ug.[IsUndeletable] = @Param7 FROM UsersGroup ug",
                             query.CommandText);
             Assert.AreEqual(7, query.CommandParameters.Count);
         }
@@ -93,12 +94,12 @@ namespace LinQToSqlBuilder.DataAccessLayer.Tests
             }
 
             var result = new StringBuilder();
-            result.AppendLine("UPDATE [UsersGroup] SET [ID_FilingStatus] = @Param1, [CreatedBy] = @Param2 WHERE [UsersGroup].[Id] = @Param3");
-            result.AppendLine("UPDATE [UsersGroup] SET [ID_FilingStatus] = @Param4, [CreatedBy] = @Param5 WHERE [UsersGroup].[Id] = @Param6");
-            result.AppendLine("UPDATE [UsersGroup] SET [ID_FilingStatus] = @Param7, [CreatedBy] = @Param8 WHERE [UsersGroup].[Id] = @Param9");
-            result.AppendLine("UPDATE [UsersGroup] SET [ID_FilingStatus] = @Param10, [CreatedBy] = @Param11 WHERE [UsersGroup].[Id] = @Param12");
-            result.AppendLine("UPDATE [UsersGroup] SET [ID_FilingStatus] = @Param13, [CreatedBy] = @Param14 WHERE [UsersGroup].[Id] = @Param15");
-            result.Append("UPDATE [UsersGroup] SET [ID_FilingStatus] = @Param16, [CreatedBy] = @Param17 WHERE [UsersGroup].[Id] = @Param18");
+            result.AppendLine("UPDATE ug SET ug.[ID_FilingStatus] = @Param1, ug.[CreatedBy] = @Param2 FROM UsersGroup ug WHERE ug.[Id] = @Param3");
+            result.AppendLine("UPDATE ug SET ug.[ID_FilingStatus] = @Param4, ug.[CreatedBy] = @Param5 FROM UsersGroup ug WHERE ug.[Id] = @Param6");
+            result.AppendLine("UPDATE ug SET ug.[ID_FilingStatus] = @Param7, ug.[CreatedBy] = @Param8 FROM UsersGroup ug WHERE ug.[Id] = @Param9");
+            result.AppendLine("UPDATE ug SET ug.[ID_FilingStatus] = @Param10, ug.[CreatedBy] = @Param11 FROM UsersGroup ug WHERE ug.[Id] = @Param12");
+            result.AppendLine("UPDATE ug SET ug.[ID_FilingStatus] = @Param13, ug.[CreatedBy] = @Param14 FROM UsersGroup ug WHERE ug.[Id] = @Param15");
+            result.Append("UPDATE ug SET ug.[ID_FilingStatus] = @Param16, ug.[CreatedBy] = @Param17 FROM UsersGroup ug WHERE ug.[Id] = @Param18");
 
             Assert.AreEqual(result.ToString(), query.CommandText);
             Assert.AreEqual(18, query.CommandParameters.Count);

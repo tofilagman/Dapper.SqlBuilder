@@ -3,11 +3,16 @@
     /// <summary>
     /// Provides functionality common to all supported SQL Server versions
     /// </summary>
-   public class SqlServerAdapterBase : SqlAdapterBase
+    public class SqlServerAdapterBase : SqlAdapterBase
     {
         public string Table(string tableName)
         {
-            return $"[{tableName}]";
+            return tableName; //$"[{tableName}]";
+        }
+
+        public string Table(string tableName, string alias)
+        {
+            return $"{tableName} {alias}";
         }
 
         public string Field(string fieldName)
@@ -17,7 +22,7 @@
 
         public string Field(string tableName, string fieldName)
         {
-            return $"[{tableName}].[{fieldName}]";
+            return $"{tableName}.[{fieldName}]";
         }
 
         public string Parameter(string parameterId)

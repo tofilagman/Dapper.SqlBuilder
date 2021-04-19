@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dapper.SqlBuilder.ValueObjects;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -90,11 +91,37 @@ namespace Dapper.SqlBuilder.Extensions
             return nullValue;
         }
 
+        public static bool EqNullSql<T>(this T value) => true;
+        public static bool EqNullSql<T>(this T? value) where T : struct => true;
+
+        public static bool EqNotNullSql<T>(this T value) => false;
+        public static bool EqNotNullSql<T>(this T? value) where T : struct => false;
+         
         public static string ConcatSql<T>(this T value, params object[] args)
         {
             return string.Join(' ', args);
         }
-         
+
+        public static int DatePartSql(this DateTime value, DatePart datePart)
+        {
+            return 0;
+        }
+
+        public static int DatePartSql(this DateTime? value, DatePart datePart)
+        {
+            return 0;
+        }
+
+        public static int DatePartSql(this DateTimeOffset value, DatePart datePart)
+        {
+            return 0;
+        }
+
+        public static int DatePartSql(this DateTimeOffset? value, DatePart datePart)
+        {
+            return 0;
+        }
+
         internal static string SafeValue<T>(this T obj, string specialFunc = null)
         {
             if (specialFunc != null && specialFunc == obj.ToString())

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Dapper.SqlBuilder.Adapter;
 using Dapper.SqlBuilder.Builder;
@@ -29,7 +30,23 @@ namespace Dapper.SqlBuilder
 
         public IDictionary<string, object> CommandParameters => Builder.Parameters;
 
+        public List<string> TableNames
+        {
+            get
+            {
+                return Builder.TableNames.Select(x => x.TableName).ToList();
+            }
+        }
+
         public string[] SplitColumns => Builder.SplitColumns.ToArray();
+
+        public int CurrentParamIndex
+        {
+            get
+            {
+                return Builder.CurrentParamIndex;
+            }
+        }
 
         public static void SetAdapter(ISqlAdapter adapter)
         {

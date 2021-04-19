@@ -17,7 +17,7 @@ namespace Dapper.SqlBuilder
         /// <typeparam name="T">The type of entity that associates to the table to insert record(s) to</typeparam>
         /// <param name="expression">The expression that generates the record to insert</param>
         /// <returns>The instance of <see cref="SqlBuilder{T}"/> for chaining calls</returns>
-        public static SqlBuilder<T> Insert<T>(Expression<Func<T, T>> expression)
+        public static ISqlBuilder<T> Insert<T>(Expression<Func<T, T>> expression)
         {
             return new SqlBuilder<T>()
             {
@@ -25,7 +25,7 @@ namespace Dapper.SqlBuilder
             }.Insert(expression);
         }
 
-        public static SqlBuilder<T> Insert<T>(T data)
+        public static ISqlBuilder<T> Insert<T>(T data)
         {
             return Insert<T>(x => data);
         }
@@ -36,7 +36,7 @@ namespace Dapper.SqlBuilder
         /// <typeparam name="T">The type of entity that associates to the table to insert record(s) to</typeparam>
         /// <param name="expression">The expression that generates the records to insert</param>
         /// <returns>The instance of <see cref="SqlBuilder{T}"/> for chaining calls</returns>
-        public static SqlBuilder<T> InsertMany<T>(Expression<Func<T, IEnumerable<T>>> expression)
+        public static ISqlBuilder<T> InsertMany<T>(Expression<Func<T, IEnumerable<T>>> expression)
         {
             return new SqlBuilder<T>()
             {
@@ -44,7 +44,7 @@ namespace Dapper.SqlBuilder
             }.Insert(expression);
         }
 
-        public static SqlBuilder<T> InsertMany<T>(IEnumerable<T> arr)
+        public static ISqlBuilder<T> InsertMany<T>(IEnumerable<T> arr)
         {
             return InsertMany<T>(x => arr);
         }
@@ -56,7 +56,7 @@ namespace Dapper.SqlBuilder
         /// <typeparam name="TTo">The type of entity that associates to the destination table to copy record(s) to</typeparam>
         /// <param name="expression">The expression describes how to form the destination record</param>
         /// <returns>The instance of <see cref="SqlBuilder{T}"/> for chaining calls</returns>
-        public static SqlBuilder<T> InsertFrom<T, TTo>(Expression<Func<T, TTo>> expression)
+        public static ISqlBuilder<T> InsertFrom<T, TTo>(Expression<Func<T, TTo>> expression)
         {
             return new SqlBuilder<T>()
             {
@@ -71,7 +71,7 @@ namespace Dapper.SqlBuilder
         /// <param name="expression">The expression that describes how to update the record</param>
         /// <returns>The instance of <see cref="SqlBuilder{T}"/> for chaining calls</returns>
 
-        public static SqlBuilder<T> Update<T>(Expression<Func<T, T>> expression)
+        public static ISqlBuilder<T> Update<T>(Expression<Func<T, T>> expression)
         {
             return new SqlBuilder<T>()
             {
@@ -91,7 +91,7 @@ namespace Dapper.SqlBuilder
         /// <typeparam name="T">The type of entity that associates to the table to performs the deletion</typeparam>
         /// <param name="expression">The expression that filters the records to be deleted</param>
         /// <returns>The instance of <see cref="SqlBuilder{T}"/> for chaining calls</returns>
-        public static SqlBuilder<T> Delete<T>(Expression<Func<T, bool>> expression)
+        public static ISqlBuilder<T> Delete<T>(Expression<Func<T, bool>> expression)
         {
             return new SqlBuilder<T>()
             {
@@ -99,7 +99,7 @@ namespace Dapper.SqlBuilder
             }.Where(expression);
         }
 
-        public static SqlBuilder<T> Delete<T>()
+        public static ISqlBuilder<T> Delete<T>()
         {
             return new SqlBuilder<T>() { Operation = SqlOperations.Delete };
         }
@@ -110,7 +110,7 @@ namespace Dapper.SqlBuilder
         /// <typeparam name="T">The type of entity that associates to the table to prepare the query to</typeparam>
         /// <param name="expressions">The expressions that describes which fields of the <typeparamref name="T"/> to return</param>
         /// <returns>The instance of <see cref="SqlBuilder{T}"/> for chaining calls</returns>
-        public static SqlBuilder<T> Select<T>(params Expression<Func<T, object>>[] expressions)
+        public static ISqlBuilder<T> Select<T>(params Expression<Func<T, object>>[] expressions)
         {
             return new SqlBuilder<T>().Select(expressions);
         }
@@ -122,34 +122,44 @@ namespace Dapper.SqlBuilder
         /// <typeparam name="TResult"></typeparam>
         /// <param name="expression">The expression that describes which fields of the <typeparamref name="T"/> to return</param>
         /// <returns>The instance of <see cref="SqlBuilder{T}"/> for chaining calls</returns>
-        public static SqlBuilder<T> Select<T, TResult>(Expression<Func<T, TResult>> expression = null)
+        public static ISqlBuilder<T> Select<T, TResult>(Expression<Func<T, TResult>> expression = null)
         {
             return new SqlBuilder<T>().Select(expression);
         }
 
-        public static SqlBuilder<T> Select<T, TResult>(string @as, Expression<Func<T, TResult>> expression = null)
+        public static ISqlBuilder<T> Select<T, TResult>(string @as, Expression<Func<T, TResult>> expression = null)
         {
             return new SqlBuilder<T>().Select(expression);
         }
 
-        public static SqlBuilderCollection From<T>(Func<SqlBuilder<T>, SqlBuilder<T>> builder = null)
+        public static SqlBuilderCollection From<T>(Func<ISqlBuilder<T>, ISqlBuilder<T>> builder = null)
         {
             return new SqlBuilderCollection().From(builder);
         }
 
-        public static SqlBuilderCollection From<T, TResult>(this SqlBuilderCollection builderCollection, SqlBuilder<T> builder)
+        public static SqlBuilderCollection From<T, TResult>(this SqlBuilderCollection builderCollection, ISqlBuilder<T> builder)
         {
             return builderCollection.Add(builder);
         }
 
-        public static SqlBuilderUnionCollection<THeader> Union<THeader>(Func<SqlBuilder<THeader>, SqlBuilder<THeader>> builder = null, bool all = true)
+        public static SqlBuilderUnionCollection<THeader> Union<THeader>(Func<ISqlBuilder<THeader>, ISqlBuilder<THeader>> builder = null, bool all = true)
         {
             return new SqlBuilderUnionCollection<THeader>(all).Union(builder);
         }
 
-        public static SqlBuilderUnionCollection<THeader> Union<THeader, T, TResult>(this SqlBuilderUnionCollection<THeader> builderCollection, SqlBuilder<T> builder)
+        public static SqlBuilderUnionCollection<THeader> Union<THeader>(Func<ISqlBuilder<THeader>, ISqlBuilderResult<THeader>> builder = null, bool all = true)
         {
-            return builderCollection.Add(builder);
+            return new SqlBuilderUnionCollection<THeader>(all).Union(builder);
+        }
+
+        public static SqlBuilderUnionCollection<TResult> Union<TResult, THeader>(Func<ISqlBuilder<THeader>, ISqlBuilder<TResult>> builder = null, bool all = true)
+        {
+            return new SqlBuilderUnionCollection<TResult>(all).Union<THeader>(builder);
+        }
+
+        public static SqlBuilderUnionCollection<TResult> Union<TResult, THeader>(Func<ISqlBuilder<THeader>, ISqlBuilderResult<TResult>> builder = null, bool all = true)
+        {
+            return new SqlBuilderUnionCollection<TResult>(all).Union<THeader>(builder);
         }
 
         /// <summary>
@@ -158,7 +168,7 @@ namespace Dapper.SqlBuilder
         /// <typeparam name="T">The type of entity that associates to the table to prepare the query to</typeparam>
         /// <param name="expressions">The expression that describes which fields of the <typeparamref name="T"/> to return</param>
         /// <returns>The instance of <see cref="SqlBuilder{T}"/> for chaining calls</returns>
-        public static SqlBuilder<T> SelectSingle<T>(params Expression<Func<T, object>>[] expressions)
+        public static ISqlBuilder<T> SelectSingle<T>(params Expression<Func<T, object>>[] expressions)
         {
             return new SqlBuilder<T>().Select(expressions)
                                       .Take(1);
@@ -170,7 +180,7 @@ namespace Dapper.SqlBuilder
         /// <typeparam name="T">The type of entity that associates to the table to prepare the query to</typeparam>
         /// <param name="expression">The expression that describe how to filter the results</param>
         /// <returns>The instance of <see cref="SqlBuilder{T}"/> for chaining calls</returns>
-        public static SqlBuilder<T> Count<T>(Expression<Func<T, bool>> expression = null)
+        public static ISqlBuilder<T> Count<T>(Expression<Func<T, bool>> expression = null)
         {
             return Count<T>(null, expression);
         }
@@ -182,7 +192,7 @@ namespace Dapper.SqlBuilder
         /// <param name="countExpression">The expression that describe how to pick the fields for counting</param>
         /// <param name="expression">The expression that describe how to filter the results</param>
         /// <returns>The instance of <see cref="SqlBuilder{T}"/> for chaining calls</returns>
-        public static SqlBuilder<T> Count<T>(Expression<Func<T, object>> countExpression,
+        public static ISqlBuilder<T> Count<T>(Expression<Func<T, object>> countExpression,
                                              Expression<Func<T, bool>> expression = null)
         {
             var sqlBuilder = new SqlBuilder<T>();
@@ -208,18 +218,33 @@ namespace Dapper.SqlBuilder
         {
             SqlBuilderBase.SetAdapter(adapter);
         }
+
+        public static ISqlBuilder<T> SelectFunction<T>(string functionStatement, Expression<Func<T, object>> expression, params object[] args)
+        {
+            return new SqlBuilder<T>(functionStatement, isFunctionQuery: true).SelectFunction(functionStatement, expression, args);
+        }
+
+        public static ISqlBuilder<T> SubQuery<T>(ISqlBuilder<T> subQuery)
+        {
+            return new SqlBuilder<T>(subQuery);
+        }
     }
 
     /// <summary>
     /// Represents the service that will generate SQL commands from given lambda expression
     /// </summary>
     /// <typeparam name="T">The type of entity that associates to the table, used to perform the table and field name resolution</typeparam>
-    public partial class SqlBuilder<T> : SqlBuilderBase, ISqlBuilder<T>
+    public partial class SqlBuilder<T> : SqlBuilderBase, ISqlBuilder<T>, ISqlBuilderResult<T>
     {
-        public SqlBuilder(int paramCount = 0)
+        public SqlBuilder(string tableName, int paramCount = 0, bool isFunctionQuery = false)
         {
-            Builder = new SqlQueryBuilder(LambdaResolver.GetTableName<T>(), DefaultAdapter, paramCount);
+            var alias = isFunctionQuery ? LambdaResolver.GetTableName<T>(true) : LambdaResolver.Shortener(tableName, true);
+            Builder = new SqlQueryBuilder(tableName, alias, DefaultAdapter, null, paramCount);
             Resolver = new LambdaResolver(Builder);
+        }
+
+        public SqlBuilder(int paramCount = 0) : this(LambdaResolver.GetTableName<T>(), paramCount)
+        {
         }
 
         public SqlBuilder(Expression<Func<T, bool>> expression) : this()
@@ -233,83 +258,91 @@ namespace Dapper.SqlBuilder
             Resolver = resolver;
         }
 
-        public SqlBuilder<T> Where(Expression<Func<T, bool>> expression)
+        internal SqlBuilder(ISqlBuilder builder)
+        {
+            var tblName = LambdaResolver.GetTableName<T>();
+            var alias = LambdaResolver.Shortener(tblName, true);
+            Builder = new SqlQueryBuilder(tblName, alias, DefaultAdapter, builder, builder.CurrentParamIndex, SqlOperations.SubQuery);
+            Resolver = new LambdaResolver(Builder);
+        }
+
+        public ISqlBuilder<T> Where(Expression<Func<T, bool>> expression)
         {
             return And(expression);
         }
 
-        public SqlBuilder<T> And(Expression<Func<T, bool>> expression)
+        public ISqlBuilder<T> And(Expression<Func<T, bool>> expression)
         {
             Builder.And();
             Resolver.ResolveQuery(expression);
             return this;
         }
 
-        public SqlBuilder<T> AndIsIn(Expression<Func<T, object>> expression, SqlBuilderBase sqlQuery) => WhereIsIn(expression, sqlQuery);
+        public ISqlBuilder<T> AndIsIn(Expression<Func<T, object>> expression, SqlBuilderBase sqlQuery) => WhereIsIn(expression, sqlQuery);
 
-        public SqlBuilder<T> AndIsIn<T2>(Expression<Func<T, T2>> expression, IEnumerable<T2> values) => WhereIsIn(expression, values);
+        public ISqlBuilder<T> AndIsIn<T2>(Expression<Func<T, T2>> expression, IEnumerable<T2> values) => WhereIsIn(expression, values);
 
-        public SqlBuilder<T> Or(Expression<Func<T, bool>> expression)
+        public ISqlBuilder<T> Or(Expression<Func<T, bool>> expression)
         {
             Builder.Or();
             Resolver.ResolveQuery(expression);
             return this;
         }
 
-        public SqlBuilder<T> WhereIsIn(Expression<Func<T, object>> expression, SqlBuilderBase sqlQuery)
+        public ISqlBuilder<T> WhereIsIn(Expression<Func<T, object>> expression, SqlBuilderBase sqlQuery)
         {
             Builder.And();
             Resolver.QueryByIsIn(expression, sqlQuery);
             return this;
         }
 
-        public SqlBuilder<T> WhereIsIn<T2>(Expression<Func<T, T2>> expression, IEnumerable<T2> values)
+        public ISqlBuilder<T> WhereIsIn<T2>(Expression<Func<T, T2>> expression, IEnumerable<T2> values)
         {
             Builder.And();
             Resolver.QueryByIsIn(expression, values);
             return this;
         }
 
-        public SqlBuilder<T> WhereNotIn(Expression<Func<T, object>> expression, SqlBuilderBase sqlQuery)
+        public ISqlBuilder<T> WhereNotIn(Expression<Func<T, object>> expression, SqlBuilderBase sqlQuery)
         {
             Builder.And();
             Resolver.QueryByNotIn(expression, sqlQuery);
             return this;
         }
 
-        public SqlBuilder<T> WhereNotIn<T2>(Expression<Func<T, T2>> expression, IEnumerable<T2> values)
+        public ISqlBuilder<T> WhereNotIn<T2>(Expression<Func<T, T2>> expression, IEnumerable<T2> values)
         {
             Builder.And();
             Resolver.QueryByNotIn(expression, values);
             return this;
         }
 
-        public SqlBuilder<T> WhereBetween<T2>(Expression<Func<T, T2>> expression, T2 start, T2 end)
+        public ISqlBuilder<T> WhereBetween<T2>(Expression<Func<T, T2>> expression, T2 start, T2 end)
         {
             Builder.And();
             Resolver.QueryBetween(expression, start, end, false);
             return this;
         }
 
-        public SqlBuilder<T> WhereNotBetween<T2>(Expression<Func<T, T2>> expression, T2 start, T2 end)
+        public ISqlBuilder<T> WhereNotBetween<T2>(Expression<Func<T, T2>> expression, T2 start, T2 end)
         {
             Builder.And();
             Resolver.QueryBetween(expression, start, end, true);
             return this;
         }
 
-        public SqlBuilder<T> AndBetween<T2>(Expression<Func<T, T2>> expression, T2 start, T2 end) => WhereBetween(expression, start, end);
+        public ISqlBuilder<T> AndBetween<T2>(Expression<Func<T, T2>> expression, T2 start, T2 end) => WhereBetween(expression, start, end);
 
-        public SqlBuilder<T> AndNotBetween<T2>(Expression<Func<T, T2>> expression, T2 start, T2 end) => WhereNotBetween(expression, start, end);
+        public ISqlBuilder<T> AndNotBetween<T2>(Expression<Func<T, T2>> expression, T2 start, T2 end) => WhereNotBetween(expression, start, end);
 
 
-        public SqlBuilder<T> OrderBy(Expression<Func<T, object>> expression)
+        public ISqlBuilder<T> OrderBy(Expression<Func<T, object>> expression)
         {
             Resolver.OrderBy(expression);
             return this;
         }
 
-        public SqlBuilder<T> Take(int pageSize)
+        public ISqlBuilder<T> Take(int pageSize)
         {
             Builder.Take(pageSize);
             return this;
@@ -320,19 +353,19 @@ namespace Dapper.SqlBuilder
         /// </summary>
         /// <param name="pageIndex">Number of pages to skip</param>
         /// <returns></returns>
-        public SqlBuilder<T> Skip(int pageIndex)
+        public ISqlBuilder<T> Skip(int pageIndex)
         {
             Builder.SkipPages(pageIndex);
             return this;
         }
 
-        public SqlBuilder<T> OrderByDescending(Expression<Func<T, object>> expression)
+        public ISqlBuilder<T> OrderByDescending(Expression<Func<T, object>> expression)
         {
             Resolver.OrderBy(expression, true);
             return this;
         }
 
-        public SqlBuilder<T> Select(params Expression<Func<T, object>>[] expressions)
+        public ISqlBuilder<T> Select(params Expression<Func<T, object>>[] expressions)
         {
             foreach (var expression in expressions)
                 Resolver.Select(expression);
@@ -340,13 +373,25 @@ namespace Dapper.SqlBuilder
             return this;
         }
 
-        public SqlBuilder<T> Select<TResult>(Expression<Func<T, TResult>> expression)
+        public ISqlBuilder<T> Select<TResult>(Expression<Func<T, TResult>> expression)
         {
             Resolver.Select(expression);
             return this;
         }
 
-        public SqlBuilder<T> Update(Expression<Func<T, T>> expression)
+        public ISqlBuilder<T> Select<T2, TResult>(Expression<Func<T, T2, TResult>> expression)
+        {
+            Resolver.Select(expression);
+            return this;
+        }
+
+        public ISqlBuilder<T> Select<T2, T3, TResult>(Expression<Func<T, T2, T3, TResult>> expression)
+        {
+            Resolver.Select(expression);
+            return this;
+        }
+
+        public ISqlBuilder<T> Update(Expression<Func<T, T>> expression)
         {
             Resolver.Update(expression);
             return this;
@@ -357,7 +402,7 @@ namespace Dapper.SqlBuilder
         /// </summary>
         /// <param name="expression">The expression describes what to insert</param>
         /// <returns></returns>
-        public SqlBuilder<T> Insert(Expression<Func<T, T>> expression)
+        public ISqlBuilder<T> Insert(Expression<Func<T, T>> expression)
         {
             Resolver.Insert<T>(expression);
             return this;
@@ -366,7 +411,7 @@ namespace Dapper.SqlBuilder
         /// <summary>
         /// Append OUTPUT to the insert statement to get the output identity of the inserted record.
         /// </summary>
-        public SqlBuilder<T> OutputIdentity()
+        public ISqlBuilder<T> OutputIdentity()
         {
             if (Builder.Operation != SqlOperations.Insert)
                 throw new InvalidOperationException($"Cannot OUTPUT identity for the SQL statement that is not insert");
@@ -380,7 +425,7 @@ namespace Dapper.SqlBuilder
         /// </summary>
         /// <param name="expression">The expression describes the entities to insert</param>
         /// <returns></returns>
-        public SqlBuilder<T> Insert(Expression<Func<T, IEnumerable<T>>> expression)
+        public ISqlBuilder<T> Insert(Expression<Func<T, IEnumerable<T>>> expression)
         {
             Resolver.Insert(expression);
             return this;
@@ -392,131 +437,84 @@ namespace Dapper.SqlBuilder
         /// <typeparam name="TTo">The destination table</typeparam>
         /// <param name="expression">The expression describes how to copy values from original table <see cref="T"/></param>
         /// <returns></returns>
-        public SqlBuilder<T> Insert<TTo>(Expression<Func<T, TTo>> expression)
+        public ISqlBuilder<T> Insert<TTo>(Expression<Func<T, TTo>> expression)
         {
             Builder.InsertTo<TTo>();
             Resolver.Insert<T, TTo>(expression);
             return this;
         }
 
-        public SqlBuilder<T> SelectCount(Expression<Func<T, object>> expression)
+        public ISqlBuilder<T> SelectCount(Expression<Func<T, object>> expression)
         {
-            Resolver.SelectWithFunction(expression, SelectFunction.COUNT);
+            Resolver.SelectWithFunction(expression, SelectFunctionType.COUNT);
             return this;
         }
 
-        public SqlBuilder<T> SelectCountAll()
+        public ISqlBuilder<T> SelectCountAll()
         {
-            Resolver.SelectWithFunction<T>(SelectFunction.COUNT);
+            Resolver.SelectWithFunction<T>(SelectFunctionType.COUNT);
             return this;
         }
 
-        public SqlBuilder<T> SelectDistinct(Expression<Func<T, object>> expression)
+        public ISqlBuilder<T> SelectDistinct(Expression<Func<T, object>> expression)
         {
-            Resolver.SelectWithFunction(expression, SelectFunction.DISTINCT);
+            Resolver.SelectWithFunction(expression, SelectFunctionType.DISTINCT);
             return this;
         }
 
-        public SqlBuilder<T> SelectSum(Expression<Func<T, object>> expression)
+        public ISqlBuilder<T> SelectSum(Expression<Func<T, object>> expression)
         {
-            Resolver.SelectWithFunction(expression, SelectFunction.SUM);
+            Resolver.SelectWithFunction(expression, SelectFunctionType.SUM);
             return this;
         }
 
-        public SqlBuilder<T> SelectMax(Expression<Func<T, object>> expression)
+        public ISqlBuilder<T> SelectMax(Expression<Func<T, object>> expression)
         {
-            Resolver.SelectWithFunction(expression, SelectFunction.MAX);
+            Resolver.SelectWithFunction(expression, SelectFunctionType.MAX);
             return this;
         }
 
-        public SqlBuilder<T> SelectMin(Expression<Func<T, object>> expression)
+        public ISqlBuilder<T> SelectMin(Expression<Func<T, object>> expression)
         {
-            Resolver.SelectWithFunction(expression, SelectFunction.MIN);
+            Resolver.SelectWithFunction(expression, SelectFunctionType.MIN);
             return this;
         }
 
-        public SqlBuilder<T> SelectAverage(Expression<Func<T, object>> expression)
+        public ISqlBuilder<T> SelectAverage(Expression<Func<T, object>> expression)
         {
-            Resolver.SelectWithFunction(expression, SelectFunction.AVG);
+            Resolver.SelectWithFunction(expression, SelectFunctionType.AVG);
             return this;
         }
 
-        //[Obsolete("Bug")]
-        //public SqlBuilder<TResult> Join<T2, TKey, TResult>(SqlBuilder<T2> joinQuery,
-        //    Expression<Func<T, TKey>> primaryKeySelector,
-        //    Expression<Func<T, TKey>> foreignKeySelector,
-        //    Func<T, T2, TResult> selection)
-        //{
-        //    var query = new SqlBuilder<TResult>(Builder, Resolver);
-        //    Resolver.Join<T, T2, TKey>(primaryKeySelector, foreignKeySelector);
-        //    return query;
-        //}
-
-        private SqlBuilder<T2> Join<T2>(Expression<Func<T, T2, bool>> expression, JoinType joinType)
-        {
-            var joinQuery = new SqlBuilder<T2>(Builder, Resolver);
-            Resolver.Join(expression, joinType);
-            return joinQuery;
-        }
-
-        private SqlBuilder<T2> Join<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns, JoinType joinType)
-        {
-            var joinQuery = new SqlBuilder<T2>(Builder, Resolver).Select(columns);
-            Resolver.Join(expression, joinType);
-            return joinQuery;
-        }
-
-        public SqlBuilder<T2> InnerJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.InnerJoin);
-        public SqlBuilder<T2> InnerJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.InnerJoin);
-        public SqlBuilder<T2> LeftJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.LeftJoin);
-        public SqlBuilder<T2> LeftJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.LeftJoin);
-        public SqlBuilder<T2> LeftOuterJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.LeftOuterJoin);
-        public SqlBuilder<T2> LeftOuterJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.LeftOuterJoin);
-        public SqlBuilder<T2> RightJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.RightJoin);
-        public SqlBuilder<T2> RightJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.RightJoin);
-        public SqlBuilder<T2> RightOuterJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.RightOuterJoin);
-        public SqlBuilder<T2> RightOuterJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.RightOuterJoin);
-        public SqlBuilder<T2> FullJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.FullJoin);
-        public SqlBuilder<T2> FullJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.FullJoin);
-        public SqlBuilder<T2> FullOuterJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.FullOuterJoin);
-        public SqlBuilder<T2> FullOuterJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.FullOuterJoin);
-        public SqlBuilder<T2> CrossJoin<T2>(Expression<Func<T, T2, bool>> expression) => Join(expression, JoinType.CrossJoin);
-        public SqlBuilder<T2> CrossJoin<T2>(Expression<Func<T, T2, bool>> expression, Expression<Func<T2, object>> columns) => Join(expression, columns, JoinType.CrossJoin);
-
-        public SqlBuilder<T> GroupBy(Expression<Func<T, object>> expression)
+        public ISqlBuilder<T> GroupBy(Expression<Func<T, object>> expression)
         {
             Resolver.GroupBy(expression);
             return this;
         }
-    }
 
-    public interface ISqlBuilder<T> : ISqlBuilder
-    {
-
-    }
-
-    public interface ISqlBuilder
-    {
-        string CommandText { get; }
-        IDictionary<string, object> CommandParameters { get; }
+        public ISqlBuilder<T> SelectFunction<TResult>(string functionStatement, Expression<Func<T, TResult>> expression, params object[] args)
+        {
+            Resolver.SelectWithFunction(functionStatement, expression, args);
+            return this;
+        }
     }
 
     public class SqlBuilderCollection : ISqlBuilder
     {
-        private readonly List<SqlBuilderBase> sqlBuilders;
+        private readonly List<ISqlBuilder> sqlBuilders;
 
         public SqlBuilderCollection()
         {
-            sqlBuilders = new List<SqlBuilderBase>();
+            sqlBuilders = new List<ISqlBuilder>();
         }
 
-        public SqlBuilderCollection Add<T>(SqlBuilder<T> builder)
+        public SqlBuilderCollection Add<T>(ISqlBuilder<T> builder)
         {
             sqlBuilders.Add(builder);
             return this;
         }
 
-        public SqlBuilderCollection From<T>(Func<SqlBuilder<T>, SqlBuilder<T>> builder = null)
+        public SqlBuilderCollection From<T>(Func<ISqlBuilder<T>, ISqlBuilder<T>> builder = null)
         {
             var fg = new SqlBuilder<T>(LastCount);
             var nbd = builder?.Invoke(fg);
@@ -545,33 +543,54 @@ namespace Dapper.SqlBuilder
             {
                 if (sqlBuilders.Count == 0)
                     return 0;
-                return sqlBuilders.Max(x => x.SqlBuilder.CurrentParamIndex);
+                return sqlBuilders.Max(x => x.CurrentParamIndex);
+            }
+        }
+
+        public int CurrentParamIndex => LastCount;
+
+        public List<string> TableNames
+        {
+            get
+            {
+                if (sqlBuilders.Count == 0)
+                    return new List<string>();
+                return sqlBuilders.SelectMany(x => x.TableNames).ToList();
             }
         }
     }
 
-    public class SqlBuilderUnionCollection<THeader> : ISqlBuilder<THeader>
+    public class SqlBuilderUnionCollection<TResult> : ISqlBuilderResult<TResult>
     {
-        private readonly List<SqlBuilderBase> sqlBuilders;
+        private readonly List<ISqlBuilder> sqlBuilders;
         private readonly bool All;
 
         public SqlBuilderUnionCollection(bool all)
         {
-            sqlBuilders = new List<SqlBuilderBase>();
+            sqlBuilders = new List<ISqlBuilder>();
             All = all;
         }
 
-        public SqlBuilderUnionCollection<THeader> Add<T>(SqlBuilder<T> builder)
-        {
-            sqlBuilders.Add(builder);
-            return this;
-        }
-
-        public SqlBuilderUnionCollection<THeader> Union<T>(Func<SqlBuilder<T>, SqlBuilder<T>> builder = null)
+        public SqlBuilderUnionCollection<TResult> Union<T>(Func<ISqlBuilder<T>, ISqlBuilder<TResult>> builder = null)
         {
             var fg = new SqlBuilder<T>(LastCount);
             var nbd = builder?.Invoke(fg);
-            return this.Add(nbd ?? fg);
+            if (nbd == null)
+                sqlBuilders.Add(fg);
+            else
+                sqlBuilders.Add(nbd);
+            return this;
+        }
+
+        public SqlBuilderUnionCollection<TResult> Union<T>(Func<ISqlBuilder<T>, ISqlBuilderResult<TResult>> builder = null)
+        {
+            var fg = new SqlBuilder<T>(LastCount);
+            var nbd = builder?.Invoke(fg);
+            if (nbd == null)
+                sqlBuilders.Add(fg);
+            else
+                sqlBuilders.Add(nbd);
+            return this;
         }
 
         public string CommandText
@@ -597,26 +616,38 @@ namespace Dapper.SqlBuilder
             {
                 if (sqlBuilders.Count == 0)
                     return 0;
-                return sqlBuilders.Max(x => x.SqlBuilder.CurrentParamIndex);
+                return sqlBuilders.Max(x => x.CurrentParamIndex);
+            }
+        }
+
+        public int CurrentParamIndex => LastCount;
+
+        public List<string> TableNames
+        {
+            get
+            {
+                if (sqlBuilders.Count == 0)
+                    return new List<string>();
+                return sqlBuilders.SelectMany(x => x.TableNames).ToList();
             }
         }
     }
 
-    public class SqlBuilderMultiple<T> : ISqlBuilder<T>
+    public class SqlBuilderMultiple<T> : ISqlBuilderResult<T>
     {
-        private readonly List<SqlBuilderBase> sqlBuilders;
+        private readonly List<ISqlBuilder<T>> sqlBuilders;
         public SqlBuilderMultiple()
         {
-            sqlBuilders = new List<SqlBuilderBase>();
+            sqlBuilders = new List<ISqlBuilder<T>>();
         }
 
-        public SqlBuilderMultiple<T> Add(SqlBuilder<T> builder)
+        public SqlBuilderMultiple<T> Add(ISqlBuilder<T> builder)
         {
             sqlBuilders.Add(builder);
             return this;
         }
 
-        public SqlBuilder<T> Insert(Expression<Func<T, T>> expression)
+        public ISqlBuilder<T> Insert(Expression<Func<T, T>> expression)
         {
             var builder = new SqlBuilder<T>(LastCount)
             {
@@ -628,7 +659,7 @@ namespace Dapper.SqlBuilder
             return builder;
         }
 
-        public SqlBuilder<T> Update(Expression<Func<T, T>> expression)
+        public ISqlBuilder<T> Update(Expression<Func<T, T>> expression)
         {
             var builder = new SqlBuilder<T>(LastCount)
             {
@@ -641,7 +672,7 @@ namespace Dapper.SqlBuilder
             return builder;
         }
 
-        public SqlBuilder<T> Delete(Expression<Func<T, bool>> expression)
+        public ISqlBuilder<T> Delete(Expression<Func<T, bool>> expression)
         {
             var builder = new SqlBuilder<T>(LastCount)
             {
@@ -676,7 +707,19 @@ namespace Dapper.SqlBuilder
             {
                 if (sqlBuilders.Count == 0)
                     return 0;
-                return sqlBuilders.Max(x => x.SqlBuilder.CurrentParamIndex);
+                return sqlBuilders.Max(x => x.CurrentParamIndex);
+            }
+        }
+
+        public int CurrentParamIndex => LastCount;
+
+        public List<string> TableNames
+        {
+            get
+            {
+                if (sqlBuilders.Count == 0)
+                    return new List<string>();
+                return sqlBuilders.SelectMany(x => x.TableNames).ToList();
             }
         }
     }
@@ -690,6 +733,36 @@ namespace Dapper.SqlBuilder
         }
 
         public SqlJoinBuilder<T1, T2> Build(Expression<Func<T1, T2, bool>> expression)
+        {
+            Resolver.ResolveQuery(expression);
+            return this;
+        }
+    }
+
+    class SqlJoinBuilder<T1, T2, T3> : SqlBuilderBase
+    {
+        public SqlJoinBuilder(int paramCount = 0)
+        {
+            Builder = new SqlQueryBuilder(LambdaResolver.GetTableName<T2>(), DefaultAdapter, paramCount);
+            Resolver = new LambdaResolver(Builder);
+        }
+
+        public SqlJoinBuilder<T1, T2, T3> Build(Expression<Func<T1, T2, T3, bool>> expression)
+        {
+            Resolver.ResolveQuery(expression);
+            return this;
+        }
+    }
+
+    class SqlJoinBuilder<T1, T2, T3, T4> : SqlBuilderBase
+    {
+        public SqlJoinBuilder(int paramCount = 0)
+        {
+            Builder = new SqlQueryBuilder(LambdaResolver.GetTableName<T2>(), DefaultAdapter, paramCount);
+            Resolver = new LambdaResolver(Builder);
+        }
+
+        public SqlJoinBuilder<T1, T2, T3, T4> Build(Expression<Func<T1, T2, T3, T4, bool>> expression)
         {
             Resolver.ResolveQuery(expression);
             return this;

@@ -25,6 +25,18 @@ namespace Dapper.SqlBuilder.Resolver
             BuildSql(expressionTree);
         }
 
+        public void ResolveQuery<T, T2, T3>(Expression<Func<T, T2, T3, bool>> expression)
+        {
+            var expressionTree = ResolveQuery((dynamic)expression.Body);
+            BuildSql(expressionTree);
+        }
+
+        public void ResolveQuery<T, T2, T3, T4>(Expression<Func<T, T2, T3, T4, bool>> expression)
+        {
+            var expressionTree = ResolveQuery((dynamic)expression.Body);
+            BuildSql(expressionTree);
+        }
+
         private Node ResolveQuery(ConstantExpression constantExpression)
         {
             return new ValueNode { Value = constantExpression.Value };
@@ -65,6 +77,20 @@ namespace Dapper.SqlBuilder.Resolver
                     },
                     Method = callFunction,
                     Value = fieldValue
+                };
+            }
+
+            if (Enum.TryParse(callExpression.Method.Name, true, out NullMethod nullFunction))
+            {
+                var member = callExpression.Object as MemberExpression ?? callExpression.Arguments[0];
+                return new NullNode
+                {
+                    MemberNode = new MemberNode
+                    {
+                        TableName = GetTableName(member),
+                        FieldName = GetColumnName(member)
+                    },
+                    Method = nullFunction
                 };
             }
 
@@ -169,10 +195,10 @@ namespace Dapper.SqlBuilder.Resolver
                             var value = ResolveValue((dynamic)memberExpr.Member, null);
                             return value;
                         }
-                         
+
                         var obj = GetExpressionValue(memberExpr.Expression);
-                        return ResolveValue((dynamic)memberExpr.Member, obj); 
-                    }
+                        return ResolveValue((dynamic)memberExpr.Member, obj);
+                    } 
                     throw new ArgumentException("Invalid expression");
                 case ExpressionType.Convert:
                     if (expression is UnaryExpression convertExpression)

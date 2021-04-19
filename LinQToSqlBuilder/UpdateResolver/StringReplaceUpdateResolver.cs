@@ -20,7 +20,7 @@ namespace Dapper.SqlBuilder.UpdateResolver
             }
         }
 
-        public void ResolveStatement(SqlQueryBuilder builder,
+        public void ResolveStatement(string sourceAlias, SqlQueryBuilder builder,
                                      MethodCallExpression callExpression,
                                      object[] arguments)
         {
@@ -29,7 +29,7 @@ namespace Dapper.SqlBuilder.UpdateResolver
 
             var columnName = LambdaResolver.GetColumnName(callExpression.Object);
 
-            builder.UpdateFieldReplaceString(columnName, arguments[0], arguments[1]);
+            builder.UpdateFieldReplaceString(sourceAlias, columnName, arguments[0], arguments[1]);
         }
     }
 }

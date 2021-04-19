@@ -50,7 +50,7 @@ namespace Dapper.SqlBuilder.Builder
         {
             var paramId = NextParamId();
             var newCondition = string.Format("{0} {1} {2}",
-                                             Adapter.Field(tableName, fieldName),
+                                             Adapter.Field(GetTableAlias(tableName), fieldName),
                                              op,
                                              Adapter.Parameter(paramId));
 
@@ -60,37 +60,37 @@ namespace Dapper.SqlBuilder.Builder
 
         public void QueryByField(string tableName, string fieldName)
         {
-            WhereConditions.Add(Adapter.Field(tableName, fieldName));
+            WhereConditions.Add(Adapter.Field(GetTableAlias(tableName), fieldName));
         }
 
         public void QueryByFieldLike(string tableName, string fieldName, string fieldValue)
         {
             var paramId = NextParamId();
             var newCondition = string.Format("{0} LIKE {1}",
-                                             Adapter.Field(tableName, fieldName),
+                                             Adapter.Field(GetTableAlias(tableName), fieldName),
                                              Adapter.Parameter(paramId));
 
             WhereConditions.Add(newCondition);
             AddParameter(paramId, fieldValue);
         }
-
+          
         public void QueryByFieldNull(string tableName, string fieldName)
         {
-            WhereConditions.Add(string.Format("{0} IS NULL", Adapter.Field(tableName, fieldName)));
+            WhereConditions.Add(string.Format("{0} IS NULL", Adapter.Field(GetTableAlias(tableName), fieldName)));
         }
 
         public void QueryByFieldNotNull(string tableName, string fieldName)
         {
-            WhereConditions.Add(string.Format("{0} IS NOT NULL", Adapter.Field(tableName, fieldName)));
+            WhereConditions.Add(string.Format("{0} IS NOT NULL", Adapter.Field(GetTableAlias(tableName), fieldName)));
         }
 
         public void QueryByFieldComparison(string leftTableName, string leftFieldName, string op,
             string rightTableName, string rightFieldName)
         {
             var newCondition = string.Format("{0} {1} {2}",
-                                             Adapter.Field(leftTableName, leftFieldName),
+                                             Adapter.Field(GetTableAlias(leftTableName), leftFieldName),
                                              op,
-                                             Adapter.Field(rightTableName, rightFieldName));
+                                             Adapter.Field(GetTableAlias(rightTableName), rightFieldName));
 
             WhereConditions.Add(newCondition);
         }
@@ -105,7 +105,7 @@ namespace Dapper.SqlBuilder.Builder
                 AddParameter(innerParamKey, param.Value);
             }
 
-            var newCondition = string.Format("{0} IN ({1})", Adapter.Field(tableName, fieldName), innerQuery);
+            var newCondition = string.Format("{0} IN ({1})", Adapter.Field(GetTableAlias(tableName), fieldName), innerQuery);
 
             WhereConditions.Add(newCondition);
         }
@@ -119,7 +119,7 @@ namespace Dapper.SqlBuilder.Builder
                                                  return Adapter.Parameter(paramId);
                                              });
 
-            var newCondition = string.Format("{0} IN ({1})", Adapter.Field(tableName, fieldName), string.Join(",", paramIds));
+            var newCondition = string.Format("{0} IN ({1})", Adapter.Field(GetTableAlias(tableName), fieldName), string.Join(",", paramIds));
             WhereConditions.Add(newCondition);
         }
 
@@ -133,7 +133,7 @@ namespace Dapper.SqlBuilder.Builder
             AddParameter(paramEnd, end);
             var pEnd = Adapter.Parameter(paramEnd);
 
-            var newCondition = $"({ Adapter.Field(tableName, fieldName) } { (not ? "NOT " : "") }BETWEEN { pStart } AND { pEnd })";
+            var newCondition = $"({ Adapter.Field(GetTableAlias(tableName), fieldName) } { (not ? "NOT " : "") }BETWEEN { pStart } AND { pEnd })";
             WhereConditions.Add(newCondition);
         }
 

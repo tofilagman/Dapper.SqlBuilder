@@ -15,11 +15,20 @@ namespace Dapper.SqlBuilder
             return new SqlCase<T>().Case(expression);
         }
 
+        public static ISqlCase<T> Case<T, T2>(Expression<Func<T, T2, object>> expression)
+        {
+            return new SqlCase<T>().Case(expression);
+        }
+
         public static ISqlCase<T> Case<T>(Expression<Func<T, object>> expression, Expression<Func<T, object>> returnExpr)
         {
             return new SqlCase<T>().Case(expression, returnExpr);
         }
 
+        public static ISqlCase<T> Case<T, T2>(Expression<Func<T, T2, object>> expression, Expression<Func<T, T2, object>> returnExpr)
+        {
+            return new SqlCase<T>().Case(expression, returnExpr);
+        }
 
         public static T Case<T>(this T value, Expression<Func<T, ISqlCase<T>>> caseExpression)
         {
@@ -51,7 +60,20 @@ namespace Dapper.SqlBuilder
             return this;
         }
 
+        public ISqlCase<THeader> Case<T2>(Expression<Func<THeader, T2, object>> expression)
+        {
+            Builder.Case();
+            Resolver.Case(expression);
+            return this;
+        }
+
         public ISqlCase<THeader> Case(Expression<Func<THeader, object>> expression, Expression<Func<THeader, object>> returnExpr)
+        {
+            Builder.Case();
+            return When(expression, returnExpr);
+        }
+
+        public ISqlCase<THeader> Case<T2>(Expression<Func<THeader, T2, object>> expression, Expression<Func<THeader, T2, object>> returnExpr)
         {
             Builder.Case();
             return When(expression, returnExpr);
@@ -96,7 +118,7 @@ namespace Dapper.SqlBuilder
         }
     }
 
-    public interface ISqlCase<THeader> : ISqlBuilder<THeader>
+    public interface ISqlCase<THeader> : ISqlBuilderResult<THeader>
     {
         ISqlCase<THeader> Case(Expression<Func<THeader, object>> expression);
         ISqlCase<THeader> When(Expression<Func<THeader, object>> expression, Expression<Func<THeader, object>> returnExpr);

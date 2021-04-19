@@ -5,7 +5,7 @@ using System.Text;
 
 namespace LinQToSqlBuilder.DataAccessLayer.Tests.Entities
 {
-    [Table("permissiongroups")]
+    [Table("PermissionGroups")]
     public class PermissionGroup : TableBase
     {
         public string Name { get; set; }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Dapper.SqlBuilder.ValueObjects;
+using System.Collections.Generic;
 
 namespace Dapper.SqlBuilder.Adapter
 {
@@ -7,22 +8,26 @@ namespace Dapper.SqlBuilder.Adapter
     /// </summary>
     public interface ISqlAdapter
     {
-        string QueryString(string selection, string source, string conditions,
-            string order, string grouping, string having);
+        string QueryString(string selection, string source, string conditions, string order, string grouping, string having);
 
-        string QueryStringPage(string selection, string source, string conditions, string order,
-            int pageSize, int pageIndex = 0);
+        string QueryStringPage(string selection, string source, string conditions, string order, int pageSize, int pageIndex = 0);
+
+        string SubQueryString(string subQuery, string selection, string source, string conditions, string order, string grouping, string having);
+
+        string SubQueryStringPage(string subQuery, string selection, string source, string conditions, string order, int pageSize, int pageIndex = 0);
 
         string InsertCommand(string source, List<Dictionary<string, object>> values, string output = "");
 
         string InsertFromCommand(string target, string source, List<Dictionary<string, object>> values,
                                  string conditions);
 
-        string UpdateCommand(string updates, string source, string conditions);
+        string UpdateCommand(string updates, string source,  string sourceAlias, string conditions);
 
-        string DeleteCommand(string source, string conditions);
+        string DeleteCommand(string source, string sourceAlias, string conditions);
 
         string Table(string tableName);
+
+        string Table(string tableName, string alias);
 
         string Field(string fieldName);
 
@@ -38,6 +43,8 @@ namespace Dapper.SqlBuilder.Adapter
         string IsNull();
         string Format();
         string Concat();
+
+        string DatePart(string column, DatePart datePart);
     }
 
     enum SqlOperations
@@ -47,7 +54,8 @@ namespace Dapper.SqlBuilder.Adapter
         InsertFrom,
         Update,
         Delete,
-        Case
+        Case,
+        SubQuery
     }
 
     enum JoinType

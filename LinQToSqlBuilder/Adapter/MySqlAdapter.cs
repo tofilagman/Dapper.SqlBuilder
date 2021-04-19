@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dapper.SqlBuilder.ValueObjects;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,14 +27,28 @@ namespace Dapper.SqlBuilder.Adapter
         {
             if (pageIndex == 0 && pageSize > 0)
                 return $"SELECT {selection} FROM {source} {conditions} {order} LIMIT {pageSize}";
-             
+
             return
-                $@"SELECT {selection} FROM {source} {conditions} {order}  LIMIT {pageIndex}, {pageSize}"; // OFFSET {pageSize * pageIndex} ROWS FETCH NEXT {pageSize} ROWS ONLY";
+                $"SELECT {selection} FROM {source} {conditions} {order}  LIMIT {pageIndex}, {pageSize}";
+        }
+
+        public string SubQueryStringPage(string subQuery, string selection, string source, string conditions, string order, int pageSize, int pageIndex = 0)
+        {
+            if (pageIndex == 0 && pageSize > 0)
+                return $"SELECT {selection} FROM (\r\n {subQuery} \r\n) {source} {conditions} {order} LIMIT {pageSize}";
+
+            return
+                $"SELECT {selection} FROM (\r\n {subQuery} \r\n) {source} {conditions} {order}  LIMIT {pageIndex}, {pageSize}";
         }
 
         public string Table(string tableName)
         {
             return tableName;
+        }
+
+        public string Table(string tableName, string alias)
+        {
+            return $"{tableName} {alias}";
         }
 
         public override string InsertCommand(string target, List<Dictionary<string, object>> values, string output = "")
@@ -48,7 +63,7 @@ namespace Dapper.SqlBuilder.Adapter
             }
 
             return
-                $"INSERT INTO {target} ({string.Join(", ", fieldsToInsert)}) " + 
+                $"INSERT INTO {target} ({string.Join(", ", fieldsToInsert)}) " +
                 $"VALUES ({string.Join("), (", valuesToInsert)}) " +
                 (
                     !string.IsNullOrEmpty(output)
@@ -81,6 +96,25 @@ namespace Dapper.SqlBuilder.Adapter
         public string Concat()
         {
             return "CONCAT";
+        }
+
+        public string DatePart(string column, DatePart datePart)
+        {
+            return datePart switch
+            {
+                ValueObjects.DatePart.YEAR => $"YEAR({ column })",
+                ValueObjects.DatePart.MONTH => $"MONTH({ column })",
+                ValueObjects.DatePart.DAY => $"DAY({ column })",
+                ValueObjects.DatePart.DAYOFYEAR => $"DAYOFYEAR({ column })",
+                ValueObjects.DatePart.HOUR => $"HOUR({ column })",
+                ValueObjects.DatePart.MINUTE => $"MINUTE({ column })",
+                ValueObjects.DatePart.SECOND => $"SECOND({ column })",
+                ValueObjects.DatePart.MILLISECOND => $"MILLISECOND({ column })",
+                ValueObjects.DatePart.MICROSECOND => $"MICROSECOND({ column })",
+                ValueObjects.DatePart.WEEK => $"WEEK({ column })",
+                ValueObjects.DatePart.WEEKDAY => $"WEEKDAY({ column })",
+                _ => throw new InvalidOperationException("Specified DatePart is not supported")
+            };
         }
     }
 }

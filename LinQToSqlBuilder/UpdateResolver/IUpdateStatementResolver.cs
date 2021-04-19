@@ -8,7 +8,7 @@ namespace Dapper.SqlBuilder.UpdateResolver
     {
         MethodInfo SupportedMethod { get; }
 
-        void ResolveStatement(SqlQueryBuilder builder,
+        void ResolveStatement(string sourceAlias, SqlQueryBuilder builder,
                               MethodCallExpression callExpression,
                               object[] arguments);
     }

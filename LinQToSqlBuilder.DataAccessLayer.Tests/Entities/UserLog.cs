@@ -5,7 +5,7 @@ using System.Text;
 
 namespace LinQToSqlBuilder.DataAccessLayer.Tests.Entities
 {
-    [Table("userlog")]
+    [Table("UserLog")]
     public  class UserLog : TableBase
     {
         public int ID_User { get; set; }

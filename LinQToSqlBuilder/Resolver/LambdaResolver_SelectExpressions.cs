@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Dapper.SqlBuilder.Adapter;
+using Dapper.SqlBuilder.Builder;
 using Dapper.SqlBuilder.Extensions;
 using Dapper.SqlBuilder.Resolver.ExpressionTree;
 using Dapper.SqlBuilder.ValueObjects;
@@ -17,13 +18,29 @@ namespace Dapper.SqlBuilder.Resolver
     {
         public void Join<T1, T2>(Expression<Func<T1, T2, bool>> expression, JoinType joinType)
         {
-            var rebuilder = new SqlJoinBuilder<T1, T2>(Builder.CurrentParamIndex).Build(expression);
+            var rebuilder = new SqlJoinBuilder<T1, T2>(Builder.CurrentParamIndex); //.Build(expression);
+            //foreach (var p in rebuilder.CommandParameters)
+            //    Builder.Parameters.Add(p);
+            //Builder.CurrentParamIndex = rebuilder.Builder.CurrentParamIndex;
+            Builder.Join(GetTableName<T2>(), rebuilder, expression, joinType);
+        }
+
+        public void Join<T1, T2, T3>(Expression<Func<T1, T2, T3, bool>> expression, JoinType joinType)
+        {
+            var rebuilder = new SqlJoinBuilder<T1, T2, T3>(Builder.CurrentParamIndex).Build(expression);
             foreach (var p in rebuilder.CommandParameters)
                 Builder.Parameters.Add(p);
             Builder.CurrentParamIndex = rebuilder.Builder.CurrentParamIndex;
-            Builder.Join(GetTableName<T2>(), rebuilder.Builder.WhereCommandText, joinType);
+            Builder.Join(GetTableName<T2>(), rebuilder.Builder, joinType);
         }
-
+        public void Join<T1, T2, T3, T4>(Expression<Func<T1, T2, T3, T4, bool>> expression, JoinType joinType)
+        {
+            var rebuilder = new SqlJoinBuilder<T1, T2, T3, T4>(Builder.CurrentParamIndex).Build(expression);
+            foreach (var p in rebuilder.CommandParameters)
+                Builder.Parameters.Add(p);
+            Builder.CurrentParamIndex = rebuilder.Builder.CurrentParamIndex;
+            Builder.Join(GetTableName<T2>(), rebuilder.Builder, joinType);
+        }
 
         public void OrderBy<T>(Expression<Func<T, object>> expression, bool desc = false)
         {
@@ -50,7 +67,14 @@ namespace Dapper.SqlBuilder.Resolver
                     break;
                 case ExpressionType.Convert:
                 case ExpressionType.MemberAccess:
-                    Select<T>(GetMemberExpression(expression));
+                    if (ParseMethodCallExpression(expression, out var mace))
+                    {
+                        SelectWithSqlFunctionCall(mace as MethodCallExpression, null);
+                    }
+                    else
+                    {
+                        Select<T>(mace);
+                    }
                     break;
                 case ExpressionType.New:
                     var nxprs = (expression as NewExpression);
@@ -156,18 +180,46 @@ namespace Dapper.SqlBuilder.Resolver
             throw new Exception("Cant define a table from an expression");
         }
 
-        public void SelectWithFunction<T>(Expression<Func<T, object>> expression, SelectFunction selectFunction)
+        public void SelectWithFunction<T, TResult>(Expression<Func<T, TResult>> expression, SelectFunctionType selectFunction)
         {
             SelectWithFunction<T>(expression.Body, selectFunction);
         }
 
-        private void SelectWithFunction<T>(Expression expression, SelectFunction selectFunction)
+        public void SelectWithFunction<T, TResult>(string functionStatement, Expression<Func<T, TResult>> expression, params object[] args)
+        {
+            SelectWithFunction<T>(functionStatement, expression?.Body, args);
+        }
+
+        private void SelectWithFunction<T>(Expression expression, SelectFunctionType selectFunction)
         {
             var fieldName = GetColumnName(GetMemberExpression(expression));
             Builder.Select(GetTableName<T>(), fieldName, selectFunction);
         }
 
-        public void SelectWithFunction<T>(SelectFunction selectFunction)
+        private void SelectWithFunction<T>(string functionStatement, Expression expression, object[] args = null)
+        {
+            var prms = Builder.ParseParameter(functionStatement);
+
+            if (args == null && prms.Count > 0)
+                throw new InvalidOperationException("Function Statement requires a parameter");
+
+            if (prms.Count != args.Length)
+                throw new InvalidOperationException("Function Statement parameters does not match the parameter specified");
+
+            for (var i = 0; i < prms.Count; i++)
+                Builder.AddParameter(prms[i], args[i]);
+
+            if (expression != null)
+            {
+                Select<T>(expression);
+            }
+            else
+            {
+                Builder.Select(GetTableName<T>());
+            }
+        }
+
+        public void SelectWithFunction<T>(SelectFunctionType selectFunction)
         {
             Builder.Select(selectFunction);
         }
@@ -246,7 +298,7 @@ namespace Dapper.SqlBuilder.Resolver
                             {
                                 var nullColumn = GetColumnName(expr);
                                 var nullTableName = GetTableName(expr);
-                                nlst.Add(Builder.Adapter.Field(nullTableName, nullColumn));
+                                nlst.Add(Builder.Adapter.Field(Builder.GetTableAlias(nullTableName), nullColumn));
                                 continue;
                             }
                         }
@@ -283,6 +335,14 @@ namespace Dapper.SqlBuilder.Resolver
                         return;
                     }
                 }
+            }
+
+            if (mce.Method.Name == nameof(Extensions.TypeExtensions.DatePartSql))
+            {
+                var column = GetColumnName(mce);
+                var partValue = (DatePart)GetExpressionValue(mce.Arguments[1]);
+                Builder.SelectDatePartSql(GetTableName(mce), column, alias, partValue);
+                return;
             }
 
             throw new Exception("Use As<> extension to map type differences");
