@@ -96,12 +96,7 @@ namespace Dapper.SqlBuilder.Extensions
 
         public static bool EqNotNullSql<T>(this T value) => false;
         public static bool EqNotNullSql<T>(this T? value) where T : struct => false;
-
-        public static T EqNotNullSql<T>(this T value)
-        {
-            return value;
-        }
-
+         
         public static string ConcatSql<T>(this T value, params object[] args)
         {
             return string.Join(' ', args);
